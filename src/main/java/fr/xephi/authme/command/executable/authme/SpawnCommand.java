@@ -1,5 +1,6 @@
 package fr.xephi.authme.command.executable.authme;
 
+import fr.euphyllia.energie.utils.EntityUtils;
 import fr.xephi.authme.command.PlayerCommand;
 import fr.xephi.authme.settings.SpawnLoader;
 import org.bukkit.entity.Player;
@@ -17,7 +18,7 @@ public class SpawnCommand extends PlayerCommand {
         if (spawnLoader.getSpawn() == null) {
             player.sendMessage("[AuthMe] Spawn has failed, please try to define the spawn");
         } else {
-            player.teleport(spawnLoader.getSpawn());
+            EntityUtils.teleportAsync(player, spawnLoader.getSpawn());
         }
     }
 }

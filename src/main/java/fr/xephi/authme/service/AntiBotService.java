@@ -1,5 +1,6 @@
 package fr.xephi.authme.service;
 
+import fr.euphyllia.energie.model.SchedulerTaskInter;
 import fr.xephi.authme.initialization.SettingsDependent;
 import fr.xephi.authme.message.MessageKey;
 import fr.xephi.authme.message.Messages;
@@ -8,7 +9,6 @@ import fr.xephi.authme.permission.PermissionsManager;
 import fr.xephi.authme.settings.Settings;
 import fr.xephi.authme.settings.properties.ProtectionSettings;
 import fr.xephi.authme.util.AtomicIntervalCounter;
-import org.bukkit.scheduler.BukkitTask;
 
 import javax.inject.Inject;
 import java.util.Locale;
@@ -32,7 +32,7 @@ public class AntiBotService implements SettingsDependent {
     // Service status
     private AntiBotStatus antiBotStatus;
     private boolean startup;
-    private BukkitTask disableTask;
+    private SchedulerTaskInter disableTask;
     private AtomicIntervalCounter flaggedCounter;
 
     @Inject
@@ -76,7 +76,7 @@ public class AntiBotService implements SettingsDependent {
             bukkitService.scheduleSyncDelayedTask(enableTask, delay * TICKS_PER_SECOND);
             startup = false;
         } else {
-            enableTask.run();
+            bukkitService.runTask(enableTask);
         }
     }
 

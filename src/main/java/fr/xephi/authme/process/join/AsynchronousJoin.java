@@ -150,7 +150,7 @@ public class AsynchronousJoin implements AsynchronousProcess {
                 return;
             }
         } else if (!service.getProperty(RegistrationSettings.FORCE)) {
-            bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(() -> {
+            bukkitService.runTask(player, () -> {
                 welcomeMessageConfiguration.sendWelcomeMessage(player);
             });
 
@@ -159,7 +159,7 @@ public class AsynchronousJoin implements AsynchronousProcess {
             if (bungeeSender.isEnabled()) {
                 // As described at https://www.spigotmc.org/wiki/bukkit-bungee-plugin-messaging-channel/
                 // "Keep in mind that you can't send plugin messages directly after a player joins."
-                bukkitService.scheduleSyncDelayedTask(() ->
+                bukkitService.runTaskLater(player, () ->
                     bungeeSender.sendAuthMeBungeecordMessage(player, MessageType.LOGIN), 5L);
             }
             return;
@@ -169,7 +169,7 @@ public class AsynchronousJoin implements AsynchronousProcess {
     }
 
     private void handlePlayerWithUnmetNameRestriction(Player player, String ip) {
-        bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(() -> {
+        bukkitService.runTask(player, () -> {
             player.kickPlayer(service.retrieveSingleMessage(player, MessageKey.NOT_OWNER_ERROR));
             if (service.getProperty(RestrictionSettings.BAN_UNKNOWN_IP)) {
                 server.banIP(ip);

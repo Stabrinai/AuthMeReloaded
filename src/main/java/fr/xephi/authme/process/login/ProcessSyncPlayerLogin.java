@@ -103,7 +103,7 @@ public class ProcessSyncPlayerLogin implements SynchronousProcess {
         bukkitService.callEvent(new LoginEvent(player));
 
         // Login is done, display welcome message
-        welcomeMessageConfiguration.sendWelcomeMessage(player);
+        bukkitService.runTask(player, () -> welcomeMessageConfiguration.sendWelcomeMessage(player));
 
         // Login is now finished; we can force all commands
         if (isFirstLogin) {

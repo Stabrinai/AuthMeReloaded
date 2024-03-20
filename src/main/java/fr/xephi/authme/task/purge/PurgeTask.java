@@ -1,5 +1,6 @@
 package fr.xephi.authme.task.purge;
 
+import fr.euphyllia.energie.utils.SchedulerTaskRunnable;
 import fr.xephi.authme.ConsoleLogger;
 import fr.xephi.authme.output.ConsoleLoggerFactory;
 import fr.xephi.authme.permission.PermissionsManager;
@@ -9,14 +10,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
-class PurgeTask extends BukkitRunnable {
+class PurgeTask extends SchedulerTaskRunnable {
 
     //how many players we should check for each tick
     private static final int INTERVAL_CHECK = 5;

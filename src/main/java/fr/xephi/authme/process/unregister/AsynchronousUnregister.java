@@ -118,7 +118,8 @@ public class AsynchronousUnregister implements AsynchronousProcess {
      */
     private void performPostUnregisterActions(String name, Player player) {
         if (player != null && playerCache.isAuthenticated(name)) {
-            bungeeSender.sendAuthMeBungeecordMessage(player, MessageType.LOGOUT);
+            bukkitService.runTask(player, () ->
+                bungeeSender.sendAuthMeBungeecordMessage(player, MessageType.LOGOUT));
         }
         playerCache.removePlayer(name);
 

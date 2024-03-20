@@ -1,5 +1,6 @@
 package fr.xephi.authme.service;
 
+import fr.euphyllia.energie.utils.EntityUtils;
 import fr.xephi.authme.ConsoleLogger;
 import fr.xephi.authme.data.auth.PlayerAuth;
 import fr.xephi.authme.data.auth.PlayerCache;
@@ -185,7 +186,7 @@ public class TeleportationService implements Reloadable {
         bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(() -> {
             bukkitService.callEvent(event);
             if (player.isOnline() && isEventValid(event)) {
-                player.teleport(event.getTo());
+                EntityUtils.teleportAsync(player, event.getTo());
             }
         });
     }

@@ -7,6 +7,7 @@ import fr.xephi.authme.datasource.DataSource;
 import fr.xephi.authme.message.MessageKey;
 import fr.xephi.authme.process.AsynchronousProcess;
 import fr.xephi.authme.process.SyncProcessManager;
+import fr.xephi.authme.service.BukkitService;
 import fr.xephi.authme.service.CommonService;
 import fr.xephi.authme.service.SessionService;
 import fr.xephi.authme.service.bungeecord.BungeeSender;
@@ -30,6 +31,8 @@ public class AsynchronousLogout implements AsynchronousProcess {
 
     @Inject
     private PlayerCache playerCache;
+    @Inject
+    private BukkitService bukkitService;
 
     @Inject
     private VerificationCodeManager codeManager;
@@ -71,7 +74,7 @@ public class AsynchronousLogout implements AsynchronousProcess {
         codeManager.unverify(name);
         database.setUnlogged(name);
         sessionService.revokeSession(name);
-        bungeeSender.sendAuthMeBungeecordMessage(player, MessageType.LOGOUT);
+        bukkitService.runTask(player, () -> bungeeSender.sendAuthMeBungeecordMessage(player, MessageType.LOGOUT));
         syncProcessManager.processSyncPlayerLogout(player);
     }
 }

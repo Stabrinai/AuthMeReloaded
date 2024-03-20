@@ -1,5 +1,9 @@
 package fr.xephi.authme.service;
 
+import fr.euphyllia.energie.model.Scheduler;
+import fr.euphyllia.energie.model.SchedulerTaskInter;
+import fr.euphyllia.energie.model.SchedulerType;
+import fr.euphyllia.energie.utils.SchedulerTaskRunnable;
 import fr.xephi.authme.AuthMe;
 import fr.xephi.authme.initialization.SettingsDependent;
 import fr.xephi.authme.settings.Settings;
@@ -7,14 +11,14 @@ import fr.xephi.authme.settings.properties.PluginSettings;
 import org.bukkit.BanEntry;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import javax.inject.Inject;
 import java.util.Collection;
@@ -51,7 +55,7 @@ public class BukkitService implements SettingsDependent {
      * @return Task id number (-1 if scheduling failed)
      */
     public int scheduleSyncDelayedTask(Runnable task) {
-        return Bukkit.getScheduler().scheduleSyncDelayedTask(authMe, task);
+        return getScheduler().runTask(SchedulerType.SYNC, schedulerTaskInter -> task.run()).getTaskId();
     }
 
     /**
@@ -64,7 +68,7 @@ public class BukkitService implements SettingsDependent {
      * @return Task id number (-1 if scheduling failed)
      */
     public int scheduleSyncDelayedTask(Runnable task, long delay) {
-        return Bukkit.getScheduler().scheduleSyncDelayedTask(authMe, task, delay);
+        return getScheduler().runDelayed(SchedulerType.SYNC, schedulerTaskInter -> task.run(), delay).getTaskId();
     }
 
     /**
@@ -76,7 +80,7 @@ public class BukkitService implements SettingsDependent {
      */
     public void scheduleSyncTaskFromOptionallyAsyncTask(Runnable task) {
         if (Bukkit.isPrimaryThread()) {
-            task.run();
+            runTask(task);
         } else {
             scheduleSyncDelayedTask(task);
         }
@@ -86,12 +90,21 @@ public class BukkitService implements SettingsDependent {
      * Returns a task that will run on the next server tick.
      *
      * @param task the task to be run
-     * @return a BukkitTask that contains the id number
+     * @return a SchedulerTaskInter that contains the id number
      * @throws IllegalArgumentException if plugin is null
      * @throws IllegalArgumentException if task is null
      */
-    public BukkitTask runTask(Runnable task) {
-        return Bukkit.getScheduler().runTask(authMe, task);
+    public SchedulerTaskInter runTask(Runnable task) {
+        return getScheduler().runTask(SchedulerType.SYNC, schedulerTaskInter -> task.run());
+    }
+    public SchedulerTaskInter runTask(Object object, Runnable task) {
+        if (object instanceof Entity) {
+            return getScheduler().runTask(SchedulerType.SYNC, (Entity) object, schedulerTaskInter -> task.run(), null);
+        } else if (object instanceof Location) {
+            return getScheduler().runTask(SchedulerType.SYNC, (Location) object, schedulerTaskInter -> task.run());
+        } else {
+            return getScheduler().runTask(SchedulerType.SYNC, schedulerTaskInter -> task.run());
+        }
     }
 
     /**
@@ -100,14 +113,22 @@ public class BukkitService implements SettingsDependent {
      *
      * @param task the task to be run
      * @param delay the ticks to wait before running the task
-     * @return a BukkitTask that contains the id number
+     * @return a SchedulerTaskInter that contains the id number
      * @throws IllegalArgumentException if plugin is null
      * @throws IllegalArgumentException if task is null
      */
-    public BukkitTask runTaskLater(Runnable task, long delay) {
-        return Bukkit.getScheduler().runTaskLater(authMe, task, delay);
+    public SchedulerTaskInter runTaskLater(Runnable task, long delay) {
+        return getScheduler().runDelayed(SchedulerType.SYNC, schedulerTaskInter -> task.run(), delay);
     }
-
+    public SchedulerTaskInter runTaskLater(Object object, Runnable task, long delay) {
+        if (object instanceof Entity) {
+            return getScheduler().runDelayed(SchedulerType.SYNC, (Entity) object, schedulerTaskInter -> task.run(), null, delay);
+        } else if (object instanceof Location) {
+            return getScheduler().runDelayed(SchedulerType.SYNC, (Location) object, schedulerTaskInter -> task.run(), delay);
+        } else {
+            return getScheduler().runDelayed(SchedulerType.SYNC, schedulerTaskInter -> task.run(), delay);
+        }
+    }
     /**
      * Schedules this task to run asynchronously or immediately executes it based on
      * AuthMe's configuration.
@@ -118,7 +139,7 @@ public class BukkitService implements SettingsDependent {
         if (useAsyncTasks) {
             runTaskAsynchronously(task);
         } else {
-            task.run();
+            runTask(task);
         }
     }
 
@@ -129,12 +150,12 @@ public class BukkitService implements SettingsDependent {
      * Returns a task that will run asynchronously.
      *
      * @param task the task to be run
-     * @return a BukkitTask that contains the id number
+     * @return a SchedulerTaskInter that contains the id number
      * @throws IllegalArgumentException if plugin is null
      * @throws IllegalArgumentException if task is null
      */
-    public BukkitTask runTaskAsynchronously(Runnable task) {
-        return Bukkit.getScheduler().runTaskAsynchronously(authMe, task);
+    public SchedulerTaskInter runTaskAsynchronously(Runnable task) {
+        return getScheduler().runTask(SchedulerType.ASYNC, schedulerTaskInter -> task.run());
     }
 
     /**
@@ -148,12 +169,12 @@ public class BukkitService implements SettingsDependent {
      * @param delay the ticks to wait before running the task for the first
      *     time
      * @param period the ticks to wait between runs
-     * @return a BukkitTask that contains the id number
+     * @return a SchedulerTaskInter that contains the id number
      * @throws IllegalArgumentException if task is null
      * @throws IllegalStateException if this was already scheduled
      */
-    public BukkitTask runTaskTimerAsynchronously(BukkitRunnable task, long delay, long period) {
-        return task.runTaskTimerAsynchronously(authMe, delay, period);
+    public SchedulerTaskInter runTaskTimerAsynchronously(SchedulerTaskRunnable task, long delay, long period) {
+        return getScheduler().runAtFixedRate(SchedulerType.ASYNC, schedulerTaskInter -> task.run(), delay, period);
     }
 
     /**
@@ -163,12 +184,32 @@ public class BukkitService implements SettingsDependent {
      * @param task the task to schedule
      * @param delay the ticks to wait before running the task
      * @param period the ticks to wait between runs
-     * @return a BukkitTask that contains the id number
+     * @return a SchedulerTaskInter that contains the id number
      * @throws IllegalArgumentException if plugin is null
      * @throws IllegalStateException if this was already scheduled
      */
-    public BukkitTask runTaskTimer(BukkitRunnable task, long delay, long period) {
-        return task.runTaskTimer(authMe, delay, period);
+    public SchedulerTaskInter runTaskTimer(SchedulerTaskRunnable task, long delay, long period) {
+        return getScheduler().runAtFixedRate(SchedulerType.SYNC, schedulerTaskInter -> task.run(), delay, period);
+
+
+    }
+    public SchedulerTaskInter runTaskTimer(Object object, SchedulerTaskRunnable task, long delay, long period) {
+        if (object instanceof Entity) {
+            return getScheduler().runAtFixedRate(SchedulerType.SYNC, (Entity) object, schedulerTaskInter -> task.run(), null, delay, period);
+        } else if (object instanceof Location) {
+            return getScheduler().runAtFixedRate(SchedulerType.SYNC, (Location) object, schedulerTaskInter -> task.run(), delay, period);
+        } else {
+            return getScheduler().runAtFixedRate(SchedulerType.SYNC, schedulerTaskInter -> task.run(), delay, period);
+        }
+    }
+    
+    /**
+     * Get the plugin's scheduler.
+     *
+     * @return The plugin's scheduler.
+     */
+    public Scheduler getScheduler() {
+        return AuthMe.getEnergie().getMinecraftScheduler();
     }
 
     /**
@@ -279,17 +320,18 @@ public class BukkitService implements SettingsDependent {
      * @return returns false if no target is found
      */
     public boolean dispatchCommand(CommandSender sender, String commandLine) {
-        return Bukkit.dispatchCommand(sender, commandLine);
+        if (sender == null) return false;
+        getScheduler().runTask(SchedulerType.SYNC, task -> Bukkit.dispatchCommand(sender, commandLine));
+        return true;
     }
 
     /**
      * Dispatches a command to be run as console user on this server, and executes it if found.
      *
      * @param commandLine the command + arguments. Example: <code>test abc 123</code>
-     * @return returns false if no target is found
      */
-    public boolean dispatchConsoleCommand(String commandLine) {
-        return Bukkit.dispatchCommand(Bukkit.getConsoleSender(), commandLine);
+    public void dispatchConsoleCommand(String commandLine) {
+        getScheduler().runTask(SchedulerType.SYNC, task -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), commandLine));
     }
 
     @Override

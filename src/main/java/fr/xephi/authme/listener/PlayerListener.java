@@ -1,5 +1,6 @@
 package fr.xephi.authme.listener;
 
+import fr.euphyllia.energie.utils.EntityUtils;
 import fr.xephi.authme.data.QuickCommandsProtectionManager;
 import fr.xephi.authme.data.auth.PlayerAuth;
 import fr.xephi.authme.datasource.DataSource;
@@ -303,7 +304,7 @@ public class PlayerListener implements Listener {
         final Player player = event.getPlayer();
         if (!quickCommandsProtectionManager.isAllowed(player.getName())) {
             event.setCancelled(true);
-            player.kickPlayer(messages.retrieveSingle(player, MessageKey.QUICK_COMMAND_PROTECTION_KICK));
+            bukkitService.runTask(player, ()-> player.kickPlayer(messages.retrieveSingle(player, MessageKey.QUICK_COMMAND_PROTECTION_KICK)));
             return;
         }
         if (listenerService.shouldCancelEvent(player)) {
@@ -357,9 +358,9 @@ public class PlayerListener implements Listener {
         Location spawn = spawnLoader.getSpawnLocation(player);
         if (spawn != null && spawn.getWorld() != null) {
             if (!player.getWorld().equals(spawn.getWorld())) {
-                player.teleport(spawn);
+                EntityUtils.teleportAsync(player, spawn);
             } else if (spawn.distance(player.getLocation()) > settings.getProperty(ALLOWED_MOVEMENT_RADIUS)) {
-                player.teleport(spawn);
+                EntityUtils.teleportAsync(player, spawn);
             }
         }
     }
@@ -498,7 +499,7 @@ public class PlayerListener implements Listener {
              * @note little hack cause InventoryOpenEvent cannot be cancelled for
              * real, cause no packet is sent to server by client for the main inv
              */
-            bukkitService.scheduleSyncDelayedTask(player::closeInventory, 1);
+            bukkitService.runTaskLater(player, player::closeInventory, 1);
         }
     }
 
