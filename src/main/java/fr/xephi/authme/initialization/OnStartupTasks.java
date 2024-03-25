@@ -3,10 +3,10 @@ package fr.xephi.authme.initialization;
 import fr.xephi.authme.AuthMe;
 import fr.xephi.authme.ConsoleLogger;
 import fr.xephi.authme.datasource.DataSource;
-import fr.xephi.authme.output.ConsoleLoggerFactory;
 import fr.xephi.authme.message.MessageKey;
 import fr.xephi.authme.message.Messages;
 import fr.xephi.authme.output.ConsoleFilter;
+import fr.xephi.authme.output.ConsoleLoggerFactory;
 import fr.xephi.authme.output.Log4JFilter;
 import fr.xephi.authme.service.BukkitService;
 import fr.xephi.authme.settings.Settings;
@@ -18,7 +18,6 @@ import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -96,19 +95,16 @@ public class OnStartupTasks {
         if (!settings.getProperty(RECALL_PLAYERS)) {
             return;
         }
-        bukkitService.runTaskTimerAsynchronously(new BukkitRunnable() {
-            @Override
-            public void run() {
-                List<String> loggedPlayersWithEmptyMail = dataSource.getLoggedPlayersWithEmptyMail();
-                bukkitService.runTask(() -> {
-                    for (String playerWithoutMail : loggedPlayersWithEmptyMail) {
-                        Player player = bukkitService.getPlayerExact(playerWithoutMail);
-                        if (player != null) {
-                            messages.send(player, MessageKey.ADD_EMAIL_MESSAGE);
-                        }
+        bukkitService.runTaskTimerAsynchronously(schedulerTaskInter -> {
+            List<String> loggedPlayersWithEmptyMail = dataSource.getLoggedPlayersWithEmptyMail();
+            bukkitService.runTask(null, task -> {
+                for (String playerWithoutMail : loggedPlayersWithEmptyMail) {
+                    Player player = bukkitService.getPlayerExact(playerWithoutMail);
+                    if (player != null) {
+                        messages.send(player, MessageKey.ADD_EMAIL_MESSAGE);
                     }
-                });
-            }
-        }, 1, TICKS_PER_MINUTE * settings.getProperty(EmailSettings.DELAY_RECALL));
+                }
+            });
+        }, 1, (long) TICKS_PER_MINUTE * settings.getProperty(EmailSettings.DELAY_RECALL));
     }
 }

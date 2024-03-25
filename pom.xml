@@ -526,6 +526,18 @@
             </snapshots>
         </repository>
 
+        <!-- JitPack Repo -->
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+
         <!-- CodeMC Repo (Contains many required libraries) -->
         <repository>
             <id>codemc-repo</id>
@@ -680,6 +692,13 @@
             <artifactId>PBKDF2</artifactId>
             <version>1.1.4</version>
             <optional>true</optional>
+        </dependency>
+
+        <!-- Energie, add support for folia -->
+        <dependency>
+            <groupId>com.github.Euphillya</groupId>
+            <artifactId>Energie</artifactId>
+            <version>1.1.9</version>
         </dependency>
 
         <!-- MySQL connector, shaded into the legacy jar -->

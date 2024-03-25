@@ -1,5 +1,7 @@
 package fr.xephi.authme.service;
 
+import fr.euphyllia.energie.model.SchedulerCallBack;
+import fr.euphyllia.energie.model.SchedulerTaskInter;
 import fr.xephi.authme.initialization.SettingsDependent;
 import fr.xephi.authme.message.MessageKey;
 import fr.xephi.authme.message.Messages;
@@ -8,7 +10,6 @@ import fr.xephi.authme.permission.PermissionsManager;
 import fr.xephi.authme.settings.Settings;
 import fr.xephi.authme.settings.properties.ProtectionSettings;
 import fr.xephi.authme.util.AtomicIntervalCounter;
-import org.bukkit.scheduler.BukkitTask;
 
 import javax.inject.Inject;
 import java.util.Locale;
@@ -32,7 +33,7 @@ public class AntiBotService implements SettingsDependent {
     // Service status
     private AntiBotStatus antiBotStatus;
     private boolean startup;
-    private BukkitTask disableTask;
+    private SchedulerTaskInter disableTask;
     private AtomicIntervalCounter flaggedCounter;
 
     @Inject
@@ -68,15 +69,15 @@ public class AntiBotService implements SettingsDependent {
         }
 
         // Bot activation task
-        Runnable enableTask = () -> antiBotStatus = AntiBotStatus.LISTENING;
+        SchedulerCallBack enableTask = task -> antiBotStatus = AntiBotStatus.LISTENING;
 
         // Delay the schedule on first start
         if (startup) {
             int delay = settings.getProperty(ProtectionSettings.ANTIBOT_DELAY);
-            bukkitService.scheduleSyncDelayedTask(enableTask, delay * TICKS_PER_SECOND);
+            bukkitService.scheduleSyncDelayedTask(null, enableTask, delay * TICKS_PER_SECOND);
             startup = false;
         } else {
-            enableTask.run();
+            bukkitService.runTask(null, enableTask);
         }
     }
 
@@ -91,9 +92,9 @@ public class AntiBotService implements SettingsDependent {
             disableTask.cancel();
         }
         // Schedule auto-disable
-        disableTask = bukkitService.runTaskLater(this::stopProtection, duration * TICKS_PER_MINUTE);
+        disableTask = bukkitService.runTaskLater(null, task -> stopProtection(), duration * TICKS_PER_MINUTE);
         antiBotStatus = AntiBotStatus.ACTIVE;
-        bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(() -> {
+        bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(task -> {
             // Inform admins
             bukkitService.getOnlinePlayers().stream()
                 .filter(player -> permissionsManager.hasPermission(player, AdminPermission.ANTIBOT_MESSAGES))

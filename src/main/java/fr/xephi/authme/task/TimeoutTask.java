@@ -1,12 +1,16 @@
 package fr.xephi.authme.task;
 
+import fr.euphyllia.energie.model.SchedulerCallBack;
+import fr.euphyllia.energie.model.SchedulerTaskInter;
 import fr.xephi.authme.data.auth.PlayerCache;
 import org.bukkit.entity.Player;
+
+import javax.annotation.Nullable;
 
 /**
  * Kicks a player if he hasn't logged in (scheduled to run after a configured delay).
  */
-public class TimeoutTask implements Runnable {
+public class TimeoutTask implements SchedulerCallBack {
 
     private final Player player;
     private final String message;
@@ -26,7 +30,7 @@ public class TimeoutTask implements Runnable {
     }
 
     @Override
-    public void run() {
+    public void run(@Nullable SchedulerTaskInter schedulerTaskInter) {
         if (!playerCache.isAuthenticated(player.getName())) {
             player.kickPlayer(message);
         }

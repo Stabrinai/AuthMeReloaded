@@ -12,9 +12,9 @@ import fr.xephi.authme.data.limbo.LimboService;
 import fr.xephi.authme.datasource.DataSource;
 import fr.xephi.authme.events.AuthMeAsyncPreLoginEvent;
 import fr.xephi.authme.events.FailedLoginEvent;
-import fr.xephi.authme.output.ConsoleLoggerFactory;
 import fr.xephi.authme.mail.EmailService;
 import fr.xephi.authme.message.MessageKey;
+import fr.xephi.authme.output.ConsoleLoggerFactory;
 import fr.xephi.authme.permission.AdminPermission;
 import fr.xephi.authme.permission.PlayerPermission;
 import fr.xephi.authme.permission.PlayerStatePermission;
@@ -243,8 +243,8 @@ public class AsynchronousLogin implements AsynchronousProcess {
         if (tempbanManager.shouldTempban(ip)) {
             tempbanManager.tempbanPlayer(player);
         } else if (service.getProperty(RestrictionSettings.KICK_ON_WRONG_PASSWORD)) {
-            bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(
-                () -> player.kickPlayer(service.retrieveSingleMessage(player, MessageKey.WRONG_PASSWORD)));
+            bukkitService.runTask(player,
+                task -> player.kickPlayer(service.retrieveSingleMessage(player, MessageKey.WRONG_PASSWORD)));
         } else {
             service.send(player, MessageKey.WRONG_PASSWORD);
 
@@ -305,7 +305,7 @@ public class AsynchronousLogin implements AsynchronousProcess {
             if (bungeeSender.isEnabled()) {
                 // As described at https://www.spigotmc.org/wiki/bukkit-bungee-plugin-messaging-channel/
                 // "Keep in mind that you can't send plugin messages directly after a player joins."
-                bukkitService.scheduleSyncDelayedTask(() ->
+                bukkitService.runTaskLater(player, task ->
                     bungeeSender.sendAuthMeBungeecordMessage(player, MessageType.LOGIN), 5L);
             }
 

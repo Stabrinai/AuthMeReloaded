@@ -1,5 +1,6 @@
 package fr.xephi.authme.process;
 
+import fr.euphyllia.energie.model.SchedulerCallBack;
 import fr.xephi.authme.process.changepassword.AsyncChangePassword;
 import fr.xephi.authme.process.email.AsyncAddEmail;
 import fr.xephi.authme.process.email.AsyncChangeEmail;
@@ -50,58 +51,58 @@ public class Management {
 
 
     public void performLogin(Player player, String password) {
-        runTask(() -> asynchronousLogin.login(player, password));
+        runTask(task -> asynchronousLogin.login(player, password));
     }
 
     public void forceLogin(Player player) {
-        runTask(() -> asynchronousLogin.forceLogin(player));
+        runTask(task -> asynchronousLogin.forceLogin(player));
     }
 
     public void forceLogin(Player player, boolean quiet) {
-        runTask(() -> asynchronousLogin.forceLogin(player, quiet));
+        runTask(task -> asynchronousLogin.forceLogin(player, quiet));
     }
 
     public void performLogout(Player player) {
-        runTask(() -> asynchronousLogout.logout(player));
+        runTask(task -> asynchronousLogout.logout(player));
     }
 
     public <P extends RegistrationParameters> void performRegister(RegistrationMethod<P> variant, P parameters) {
-        runTask(() -> asyncRegister.register(variant, parameters));
+        runTask(task -> asyncRegister.register(variant, parameters));
     }
 
     public void performUnregister(Player player, String password) {
-        runTask(() -> asynchronousUnregister.unregister(player, password));
+        runTask(task -> asynchronousUnregister.unregister(player, password));
     }
 
     public void performUnregisterByAdmin(CommandSender initiator, String name, Player player) {
-        runTask(() -> asynchronousUnregister.adminUnregister(initiator, name, player));
+        runTask(task -> asynchronousUnregister.adminUnregister(initiator, name, player));
     }
 
     public void performJoin(Player player) {
-        runTask(() -> asynchronousJoin.processJoin(player));
+        runTask(task -> asynchronousJoin.processJoin(player));
     }
 
     public void performQuit(Player player) {
-        runTask(() -> asynchronousQuit.processQuit(player));
+        runTask(task -> asynchronousQuit.processQuit(player));
     }
 
     public void performAddEmail(Player player, String newEmail) {
-        runTask(() -> asyncAddEmail.addEmail(player, newEmail));
+        runTask(task -> asyncAddEmail.addEmail(player, newEmail));
     }
 
     public void performChangeEmail(Player player, String oldEmail, String newEmail) {
-        runTask(() -> asyncChangeEmail.changeEmail(player, oldEmail, newEmail));
+        runTask(task -> asyncChangeEmail.changeEmail(player, oldEmail, newEmail));
     }
 
     public void performPasswordChange(Player player, String oldPassword, String newPassword) {
-        runTask(() -> asyncChangePassword.changePassword(player, oldPassword, newPassword));
+        runTask(task -> asyncChangePassword.changePassword(player, oldPassword, newPassword));
     }
 
     public void performPasswordChangeAsAdmin(CommandSender sender, String playerName, String newPassword) {
-        runTask(() -> asyncChangePassword.changePasswordAsAdmin(sender, playerName, newPassword));
+        runTask(task -> asyncChangePassword.changePasswordAsAdmin(sender, playerName, newPassword));
     }
 
-    private void runTask(Runnable runnable) {
-        bukkitService.runTaskOptionallyAsync(runnable);
+    private void runTask(SchedulerCallBack SchedulerCallBack) {
+        bukkitService.runTaskOptionallyAsync(SchedulerCallBack);
     }
 }

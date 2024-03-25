@@ -1,5 +1,6 @@
 package fr.xephi.authme.command.executable.authme;
 
+import fr.euphyllia.energie.utils.EntityUtils;
 import fr.xephi.authme.command.PlayerCommand;
 import fr.xephi.authme.settings.SpawnLoader;
 import org.bukkit.entity.Player;
@@ -20,7 +21,7 @@ public class FirstSpawnCommand extends PlayerCommand {
         if (spawnLoader.getFirstSpawn() == null) {
             player.sendMessage("[AuthMe] First spawn has failed, please try to define the first spawn");
         } else {
-            player.teleport(spawnLoader.getFirstSpawn());
+            EntityUtils.teleportAsync(player, spawnLoader.getFirstSpawn());
         }
     }
 }

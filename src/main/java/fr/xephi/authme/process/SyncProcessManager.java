@@ -1,5 +1,6 @@
 package fr.xephi.authme.process;
 
+import fr.euphyllia.energie.model.SchedulerCallBack;
 import fr.xephi.authme.process.login.ProcessSyncPlayerLogin;
 import fr.xephi.authme.process.logout.ProcessSyncPlayerLogout;
 import fr.xephi.authme.process.quit.ProcessSyncPlayerQuit;
@@ -37,26 +38,26 @@ public class SyncProcessManager {
 
 
     public void processSyncEmailRegister(Player player) {
-        runTask(() -> processSyncEmailRegister.processEmailRegister(player));
+        runTask(task -> processSyncEmailRegister.processEmailRegister(player));
     }
 
     public void processSyncPasswordRegister(Player player) {
-        runTask(() -> processSyncPasswordRegister.processPasswordRegister(player));
+        runTask(task -> processSyncPasswordRegister.processPasswordRegister(player));
     }
 
     public void processSyncPlayerLogout(Player player) {
-        runTask(() -> processSyncPlayerLogout.processSyncLogout(player));
+        runTask(task -> processSyncPlayerLogout.processSyncLogout(player));
     }
 
     public void processSyncPlayerLogin(Player player, boolean isFirstLogin, List<String> authsWithSameIp) {
-        runTask(() -> processSyncPlayerLogin.processPlayerLogin(player, isFirstLogin, authsWithSameIp));
+        runTask(task -> processSyncPlayerLogin.processPlayerLogin(player, isFirstLogin, authsWithSameIp));
     }
 
     public void processSyncPlayerQuit(Player player, boolean wasLoggedIn) {
-        runTask(() -> processSyncPlayerQuit.processSyncQuit(player, wasLoggedIn));
+        runTask(task -> processSyncPlayerQuit.processSyncQuit(player, wasLoggedIn));
     }
 
-    private void runTask(Runnable runnable) {
-        bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(runnable);
+    private void runTask(SchedulerCallBack callBack) {
+        bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(callBack);
     }
 }

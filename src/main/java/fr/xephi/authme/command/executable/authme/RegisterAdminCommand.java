@@ -55,7 +55,7 @@ public class RegisterAdminCommand implements ExecutableCommand {
             return;
         }
 
-        bukkitService.runTaskOptionallyAsync(() -> {
+        bukkitService.runTaskOptionallyAsync(task -> {
             if (dataSource.isAuthAvailable(playerNameLowerCase)) {
                 commonService.send(sender, MessageKey.NAME_ALREADY_REGISTERED);
                 return;
@@ -77,7 +77,7 @@ public class RegisterAdminCommand implements ExecutableCommand {
             logger.info(sender.getName() + " registered " + playerName);
             final Player player = bukkitService.getPlayerExact(playerName);
             if (player != null) {
-                bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(() ->
+                bukkitService.runTask(player, task1 ->
                     player.kickPlayer(commonService.retrieveSingleMessage(player, MessageKey.KICK_FOR_ADMIN_REGISTER)));
             }
         });

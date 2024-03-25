@@ -1,5 +1,7 @@
 package fr.xephi.authme.task.purge;
 
+import fr.euphyllia.energie.model.SchedulerCallBack;
+import fr.euphyllia.energie.model.SchedulerTaskInter;
 import fr.xephi.authme.ConsoleLogger;
 import fr.xephi.authme.output.ConsoleLoggerFactory;
 import fr.xephi.authme.permission.PermissionsManager;
@@ -9,20 +11,22 @@ import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
-class PurgeTask extends BukkitRunnable {
+class PurgeTask implements SchedulerCallBack {
 
     //how many players we should check for each tick
     private static final int INTERVAL_CHECK = 5;
 
     private final ConsoleLogger logger = ConsoleLoggerFactory.get(PurgeTask.class);
     private final PurgeService purgeService;
+    private final SchedulerTaskInter taskInter;
+
     private final PermissionsManager permissionsManager;
     private final UUID sender;
     private final Set<String> toPurge;
@@ -42,7 +46,7 @@ class PurgeTask extends BukkitRunnable {
      * @param offlinePlayers offline players to map to the names
      */
     PurgeTask(PurgeService service, PermissionsManager permissionsManager, CommandSender sender,
-              Set<String> toPurge, OfflinePlayer[] offlinePlayers) {
+              Set<String> toPurge, OfflinePlayer[] offlinePlayers, SchedulerTaskInter inter) {
         this.purgeService = service;
         this.permissionsManager = permissionsManager;
 
@@ -55,10 +59,11 @@ class PurgeTask extends BukkitRunnable {
         this.toPurge = toPurge;
         this.totalPurgeCount = toPurge.size();
         this.offlinePlayers = offlinePlayers;
+        this.taskInter = inter;
     }
 
     @Override
-    public void run() {
+    public void run(@Nullable SchedulerTaskInter schedulerTaskInter) {
         if (toPurge.isEmpty()) {
             //everything was removed
             finish();
@@ -108,7 +113,7 @@ class PurgeTask extends BukkitRunnable {
     }
 
     private void finish() {
-        cancel();
+        taskInter.cancel();
 
         // Show a status message
         sendMessage(ChatColor.GREEN + "[AuthMe] Database has been purged successfully");

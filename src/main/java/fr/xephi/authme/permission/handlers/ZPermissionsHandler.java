@@ -3,10 +3,12 @@ package fr.xephi.authme.permission.handlers;
 import fr.xephi.authme.data.limbo.UserGroup;
 import fr.xephi.authme.permission.PermissionNode;
 import fr.xephi.authme.permission.PermissionsSystemType;
+import fr.xephi.authme.service.BukkitService;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.tyrannyofheaven.bukkit.zPermissions.ZPermissionsService;
 
+import javax.inject.Inject;
 import java.util.Collection;
 import java.util.Map;
 
@@ -21,6 +23,8 @@ import static java.util.stream.Collectors.toList;
 public class ZPermissionsHandler implements PermissionHandler {
 
     private ZPermissionsService zPermissionsService;
+    @Inject
+    private BukkitService bukkitService;
 
     public ZPermissionsHandler() throws PermissionHandlerException {
         // Set the zPermissions service and make sure it's valid
@@ -33,7 +37,7 @@ public class ZPermissionsHandler implements PermissionHandler {
 
     @Override
     public boolean addToGroup(OfflinePlayer player, UserGroup group) {
-        return Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+        return bukkitService.dispatchCommand(Bukkit.getConsoleSender(),
             "permissions player " + player.getName() + " addgroup " + group.getGroupName());
     }
 
@@ -50,13 +54,13 @@ public class ZPermissionsHandler implements PermissionHandler {
 
     @Override
     public boolean removeFromGroup(OfflinePlayer player, UserGroup group) {
-        return Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+        return bukkitService.dispatchCommand(Bukkit.getConsoleSender(),
             "permissions player " + player.getName() + " removegroup " + group.getGroupName());
     }
 
     @Override
     public boolean setGroup(OfflinePlayer player, UserGroup group) {
-        return Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+        return bukkitService.dispatchCommand(Bukkit.getConsoleSender(),
             "permissions player " + player.getName() + " setgroup " + group.getGroupName());
     }
 

@@ -3,6 +3,8 @@ package fr.xephi.authme;
 import ch.jalu.injector.Injector;
 import ch.jalu.injector.InjectorBuilder;
 import com.google.common.annotations.VisibleForTesting;
+import fr.euphyllia.energie.Energie;
+import fr.euphyllia.energie.model.SchedulerType;
 import fr.xephi.authme.api.v3.AuthMeApi;
 import fr.xephi.authme.command.CommandHandler;
 import fr.xephi.authme.datasource.DataSource;
@@ -39,7 +41,6 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.java.JavaPluginLoader;
-import org.bukkit.scheduler.BukkitScheduler;
 
 import java.io.File;
 import java.util.function.Consumer;
@@ -69,6 +70,7 @@ public class AuthMe extends JavaPlugin {
     private Injector injector;
     private BackupService backupService;
     private ConsoleLogger logger;
+    private static Energie energie;
 
     /**
      * Constructor.
@@ -112,6 +114,15 @@ public class AuthMe extends JavaPlugin {
     }
 
     /**
+     * Get the Energie.
+     *
+     * @return The Energie.
+     */
+    public static Energie getEnergie() {
+        return energie;
+    }
+
+    /**
      * Method called when the server enables the plugin.
      */
     @Override
@@ -122,6 +133,7 @@ public class AuthMe extends JavaPlugin {
         // Set the Logger instance and log file path
         ConsoleLogger.initialize(getLogger(), new File(getDataFolder(), LOG_FILENAME));
         logger = ConsoleLoggerFactory.get(AuthMe.class);
+        energie = new Energie(this);
 
         // Check server version
         if (!isClassLoaded("org.spigotmc.event.player.PlayerSpawnLocationEvent")
@@ -161,7 +173,7 @@ public class AuthMe extends JavaPlugin {
 
         // Schedule clean up task
         CleanupTask cleanupTask = injector.getSingleton(CleanupTask.class);
-        cleanupTask.runTaskTimerAsynchronously(this, CLEANUP_INTERVAL, CLEANUP_INTERVAL);
+        bukkitService.getScheduler().runAtFixedRate(SchedulerType.SYNC, cleanupTask, CLEANUP_INTERVAL, CLEANUP_INTERVAL);
 
         // Do a backup on start
         backupService.doBackup(BackupService.BackupCause.START);
@@ -207,7 +219,6 @@ public class AuthMe extends JavaPlugin {
         injector.register(AuthMe.class, this);
         injector.register(Server.class, getServer());
         injector.register(PluginManager.class, getServer().getPluginManager());
-        injector.register(BukkitScheduler.class, getServer().getScheduler());
         injector.provide(DataFolder.class, getDataFolder());
         injector.registerProvider(Settings.class, SettingsProvider.class);
         injector.registerProvider(DataSource.class, DataSourceProvider.class);
@@ -314,7 +325,7 @@ public class AuthMe extends JavaPlugin {
         }
 
         // Wait for tasks and close data source
-        new TaskCloser(this, database).run();
+        new TaskCloser(database).run(null);
 
         // Disabled correctly
         Consumer<String> infoLogMethod = logger == null ? getLogger()::info : logger::info;

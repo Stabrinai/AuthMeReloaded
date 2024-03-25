@@ -1,8 +1,8 @@
 package fr.xephi.authme.data.limbo;
 
+import fr.euphyllia.energie.model.SchedulerTaskInter;
 import fr.xephi.authme.task.MessageTask;
 import org.bukkit.Location;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,7 +12,6 @@ import java.util.Collection;
  * which may be revoked from the player until he has logged in or registered.
  */
 public class LimboPlayer {
-
     public static final float DEFAULT_WALK_SPEED = 0.2f;
     public static final float DEFAULT_FLY_SPEED = 0.1f;
 
@@ -22,9 +21,10 @@ public class LimboPlayer {
     private final Location loc;
     private final float walkSpeed;
     private final float flySpeed;
-    private BukkitTask timeoutTask = null;
+    private SchedulerTaskInter timeoutTask = null;
     private MessageTask messageTask = null;
     private LimboPlayerState state = LimboPlayerState.PASSWORD_REQUIRED;
+    private SchedulerTaskInter inter;
 
     public LimboPlayer(Location loc, boolean operator, Collection<UserGroup> groups, boolean fly, float walkSpeed,
                        float flySpeed) {
@@ -81,7 +81,7 @@ public class LimboPlayer {
      *
      * @return The timeout task associated to the player
      */
-    public BukkitTask getTimeoutTask() {
+    public SchedulerTaskInter getTimeoutTask() {
         return timeoutTask;
     }
 
@@ -91,7 +91,7 @@ public class LimboPlayer {
      *
      * @param timeoutTask The task to set
      */
-    public void setTimeoutTask(BukkitTask timeoutTask) {
+    public void setTimeoutTask(SchedulerTaskInter timeoutTask) {
         if (this.timeoutTask != null) {
             this.timeoutTask.cancel();
         }
@@ -112,18 +112,19 @@ public class LimboPlayer {
      *
      * @param messageTask The message task to set
      */
-    public void setMessageTask(MessageTask messageTask) {
-        if (this.messageTask != null) {
-            this.messageTask.cancel();
+    public void setMessageTask(MessageTask messageTask, SchedulerTaskInter inter) {
+        if (this.messageTask != null && this.inter != null) {
+            this.inter.cancel();
         }
         this.messageTask = messageTask;
+        this.inter = inter;
     }
 
     /**
      * Clears all tasks associated to the player.
      */
     public void clearTasks() {
-        setMessageTask(null);
+        setMessageTask(null, null);
         setTimeoutTask(null);
     }
 

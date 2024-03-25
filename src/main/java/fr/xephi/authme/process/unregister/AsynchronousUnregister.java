@@ -127,13 +127,13 @@ public class AsynchronousUnregister implements AsynchronousProcess {
         if (player == null || !player.isOnline()) {
             return;
         }
-        bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(() ->
+        bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(task ->
             commandManager.runCommandsOnUnregister(player));
 
         if (service.getProperty(RegistrationSettings.FORCE)) {
             teleportationService.teleportOnJoin(player);
 
-            bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(() -> {
+            bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(task -> {
                 limboService.createLimboPlayer(player, false);
                 applyBlindEffect(player);
             });
@@ -144,7 +144,7 @@ public class AsynchronousUnregister implements AsynchronousProcess {
     private void applyBlindEffect(Player player) {
         if (service.getProperty(RegistrationSettings.APPLY_BLIND_EFFECT)) {
             int timeout = service.getProperty(RestrictionSettings.TIMEOUT) * TICKS_PER_SECOND;
-            player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, timeout, 2));
+            bukkitService.runTask(player, task -> player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, timeout, 2)));
         }
     }
 

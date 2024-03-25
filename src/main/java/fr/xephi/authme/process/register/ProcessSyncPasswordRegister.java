@@ -72,7 +72,7 @@ public class ProcessSyncPasswordRegister implements SynchronousProcess {
 
         // Kick Player after Registration is enabled, kick the player
         if (service.getProperty(RegistrationSettings.FORCE_KICK_AFTER_REGISTER)) {
-            player.kickPlayer(service.retrieveSingleMessage(player, MessageKey.REGISTER_SUCCESS));
+            bukkitService.runTask(player, task -> player.kickPlayer(service.retrieveSingleMessage(player, MessageKey.REGISTER_SUCCESS)));
             return;
         }
 

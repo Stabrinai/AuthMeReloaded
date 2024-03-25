@@ -1,5 +1,6 @@
 package fr.xephi.authme.task.purge;
 
+import fr.euphyllia.energie.model.SchedulerTaskInter;
 import fr.xephi.authme.ConsoleLogger;
 import fr.xephi.authme.datasource.DataSource;
 import fr.xephi.authme.output.ConsoleLoggerFactory;
@@ -98,8 +99,7 @@ public class PurgeService {
         }
 
         isPurging = true;
-        PurgeTask purgeTask = new PurgeTask(this, permissionsManager, sender, names, players);
-        bukkitService.runTaskTimerAsynchronously(purgeTask, 0, 1);
+        bukkitService.runTaskTimerAsynchronously(task -> new PurgeTask(this, permissionsManager, sender, names, players, task), 1, 1);
     }
 
     /**

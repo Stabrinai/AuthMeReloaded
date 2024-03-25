@@ -1,5 +1,6 @@
 package fr.xephi.authme.data.limbo;
 
+import fr.euphyllia.energie.model.SchedulerTaskInter;
 import fr.xephi.authme.data.auth.PlayerCache;
 import fr.xephi.authme.data.captcha.RegistrationCaptchaManager;
 import fr.xephi.authme.message.MessageKey;
@@ -11,7 +12,6 @@ import fr.xephi.authme.settings.properties.RestrictionSettings;
 import fr.xephi.authme.task.MessageTask;
 import fr.xephi.authme.task.TimeoutTask;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
 
 import javax.inject.Inject;
 
@@ -53,8 +53,8 @@ class LimboPlayerTaskManager {
         if (interval > 0) {
             String[] joinMessage = messages.retrieveSingle(player, result.messageKey, result.args).split("\n");
             MessageTask messageTask = new MessageTask(player, joinMessage);
-            bukkitService.runTaskTimer(messageTask, 2 * TICKS_PER_SECOND, interval * TICKS_PER_SECOND);
-            limbo.setMessageTask(messageTask);
+            SchedulerTaskInter inter = bukkitService.runTaskTimer(null, messageTask, 2 * TICKS_PER_SECOND, (long) interval * TICKS_PER_SECOND);
+            limbo.setMessageTask(messageTask, inter);
         }
     }
 
@@ -68,7 +68,7 @@ class LimboPlayerTaskManager {
         final int timeout = settings.getProperty(RestrictionSettings.TIMEOUT) * TICKS_PER_SECOND;
         if (timeout > 0) {
             String message = messages.retrieveSingle(player, MessageKey.LOGIN_TIMEOUT_ERROR);
-            BukkitTask task = bukkitService.runTaskLater(new TimeoutTask(player, message, playerCache), timeout);
+            SchedulerTaskInter task = bukkitService.runTaskLater(player, new TimeoutTask(player, message, playerCache), timeout);
             limbo.setTimeoutTask(task);
         }
     }

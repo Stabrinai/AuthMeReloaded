@@ -5,8 +5,8 @@ import fr.xephi.authme.data.ProxySessionManager;
 import fr.xephi.authme.data.limbo.LimboService;
 import fr.xephi.authme.datasource.DataSource;
 import fr.xephi.authme.events.ProtectInventoryEvent;
-import fr.xephi.authme.output.ConsoleLoggerFactory;
 import fr.xephi.authme.message.MessageKey;
+import fr.xephi.authme.output.ConsoleLoggerFactory;
 import fr.xephi.authme.permission.PlayerStatePermission;
 import fr.xephi.authme.process.AsynchronousProcess;
 import fr.xephi.authme.process.login.AsynchronousLogin;
@@ -31,7 +31,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import javax.inject.Inject;
-
 import java.util.Locale;
 
 import static fr.xephi.authme.service.BukkitService.TICKS_PER_SECOND;
@@ -107,7 +106,7 @@ public class AsynchronousJoin implements AsynchronousProcess {
         if (service.getProperty(RestrictionSettings.FORCE_SURVIVAL_MODE)
             && player.getGameMode() != GameMode.SURVIVAL
             && !service.hasPermission(player, PlayerStatePermission.BYPASS_FORCE_SURVIVAL)) {
-            bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(() -> player.setGameMode(GameMode.SURVIVAL));
+            bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(task -> player.setGameMode(GameMode.SURVIVAL));
         }
 
         if (service.getProperty(HooksSettings.DISABLE_SOCIAL_SPY)) {
@@ -136,30 +135,28 @@ public class AsynchronousJoin implements AsynchronousProcess {
                 service.send(player, MessageKey.SESSION_RECONNECTION);
                 // Run commands
                 bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(
-                    () -> commandManager.runCommandsOnSessionLogin(player));
-                bukkitService.runTaskOptionallyAsync(() -> asynchronousLogin.forceLogin(player));
+                    task -> commandManager.runCommandsOnSessionLogin(player));
+                bukkitService.runTaskOptionallyAsync(task -> asynchronousLogin.forceLogin(player));
                 return;
             } else if (proxySessionManager.shouldResumeSession(name)) {
                 service.send(player, MessageKey.SESSION_RECONNECTION);
                 // Run commands
                 bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(
-                    () -> commandManager.runCommandsOnSessionLogin(player));
-                bukkitService.runTaskOptionallyAsync(() -> asynchronousLogin.forceLogin(player));
+                    task -> commandManager.runCommandsOnSessionLogin(player));
+                bukkitService.runTaskOptionallyAsync(task -> asynchronousLogin.forceLogin(player));
                 logger.info("The user " + player.getName() + " has been automatically logged in, "
                     + "as present in autologin queue.");
                 return;
             }
         } else if (!service.getProperty(RegistrationSettings.FORCE)) {
-            bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(() -> {
-                welcomeMessageConfiguration.sendWelcomeMessage(player);
-            });
+            bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(task -> welcomeMessageConfiguration.sendWelcomeMessage(player));
 
             // Skip if registration is optional
 
             if (bungeeSender.isEnabled()) {
                 // As described at https://www.spigotmc.org/wiki/bukkit-bungee-plugin-messaging-channel/
                 // "Keep in mind that you can't send plugin messages directly after a player joins."
-                bukkitService.scheduleSyncDelayedTask(() ->
+                bukkitService.runTaskLater(player, task ->
                     bungeeSender.sendAuthMeBungeecordMessage(player, MessageType.LOGIN), 5L);
             }
             return;
@@ -169,7 +166,7 @@ public class AsynchronousJoin implements AsynchronousProcess {
     }
 
     private void handlePlayerWithUnmetNameRestriction(Player player, String ip) {
-        bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(() -> {
+        bukkitService.runTask(player, task -> {
             player.kickPlayer(service.retrieveSingleMessage(player, MessageKey.NOT_OWNER_ERROR));
             if (service.getProperty(RestrictionSettings.BAN_UNKNOWN_IP)) {
                 server.banIP(ip);
@@ -187,7 +184,7 @@ public class AsynchronousJoin implements AsynchronousProcess {
     private void processJoinSync(Player player, boolean isAuthAvailable) {
         int registrationTimeout = service.getProperty(RestrictionSettings.TIMEOUT) * TICKS_PER_SECOND;
 
-        bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(() -> {
+        bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(task -> {
             limboService.createLimboPlayer(player, isAuthAvailable);
 
             player.setNoDamageTicks(registrationTimeout);
@@ -197,7 +194,7 @@ public class AsynchronousJoin implements AsynchronousProcess {
             if (service.getProperty(RegistrationSettings.APPLY_BLIND_EFFECT)) {
                 // Allow infinite blindness effect
                 int blindTimeOut = (registrationTimeout <= 0) ? 99999 : registrationTimeout;
-                player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, blindTimeOut, 2));
+                bukkitService.runTask(player, task1 -> player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, blindTimeOut, 2)));
             }
             commandManager.runCommandsOnJoin(player);
         });
@@ -218,8 +215,8 @@ public class AsynchronousJoin implements AsynchronousProcess {
             && !InternetProtocolUtils.isLoopbackAddress(ip)
             && countOnlinePlayersByIp(ip) > service.getProperty(RestrictionSettings.MAX_JOIN_PER_IP)) {
 
-            bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(
-                () -> player.kickPlayer(service.retrieveSingleMessage(player, MessageKey.SAME_IP_ONLINE)));
+            bukkitService.runTask(player,
+                task -> player.kickPlayer(service.retrieveSingleMessage(player, MessageKey.SAME_IP_ONLINE)));
             return false;
         }
         return true;

@@ -1,12 +1,14 @@
 package fr.xephi.authme.task;
 
+import fr.euphyllia.energie.model.SchedulerCallBack;
+import fr.euphyllia.energie.model.SchedulerTaskInter;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Message shown to a player in a regular interval as long as he is not logged in.
  */
-public class MessageTask extends BukkitRunnable {
+public class MessageTask implements SchedulerCallBack {
 
     private final Player player;
     private final String[] message;
@@ -26,7 +28,7 @@ public class MessageTask extends BukkitRunnable {
     }
 
     @Override
-    public void run() {
+    public void run(@Nullable SchedulerTaskInter schedulerTask) {
         if (!isMuted) {
             player.sendMessage(message);
         }
