@@ -29,15 +29,15 @@ public final class SecuritySettings implements SettingsHolder {
 
     @Comment("Max allowed tries before a captcha is required")
     public static final Property<Integer> MAX_LOGIN_TRIES_BEFORE_CAPTCHA =
-        newProperty("Security.captcha.maxLoginTry", 5);
+        newProperty("Security.captcha.maxLoginTry", 8);
 
     @Comment("Captcha length")
     public static final Property<Integer> CAPTCHA_LENGTH =
-        newProperty("Security.captcha.captchaLength", 5);
+        newProperty("Security.captcha.captchaLength", 6);
 
     @Comment("Minutes after which login attempts count is reset for a player")
     public static final Property<Integer> CAPTCHA_COUNT_MINUTES_BEFORE_RESET =
-        newProperty("Security.captcha.captchaCountReset", 60);
+        newProperty("Security.captcha.captchaCountReset", 120);
 
     @Comment("Require captcha before a player may register?")
     public static final Property<Boolean> ENABLE_CAPTCHA_FOR_REGISTRATION =
@@ -45,11 +45,11 @@ public final class SecuritySettings implements SettingsHolder {
 
     @Comment("Minimum length of password")
     public static final Property<Integer> MIN_PASSWORD_LENGTH =
-        newProperty("settings.security.minPasswordLength", 5);
+        newProperty("settings.security.minPasswordLength", 8);
 
     @Comment("Maximum length of password")
     public static final Property<Integer> MAX_PASSWORD_LENGTH =
-        newProperty("settings.security.passwordMaxLength", 30);
+        newProperty("settings.security.passwordMaxLength", 26);
 
     @Comment({
         "Possible values: SHA256, BCRYPT, BCRYPT2Y, PBKDF2, SALTEDSHA512,",
@@ -87,7 +87,7 @@ public final class SecuritySettings implements SettingsHolder {
         "- 'help'"})
     public static final Property<Set<String>> UNSAFE_PASSWORDS =
         newLowercaseStringSetProperty("settings.security.unsafePasswords",
-            "123456", "password", "qwerty", "12345", "54321", "123456789", "help");
+            "12345678", "password", "qwertyui", "123456789", "87654321", "1234567890", "asdfghjkl", "zxcvbnm,", "asdfghjk", "12312312", "123123123", "32132132", "321321321");
 
     @Comment("Tempban a user's IP address if they enter the wrong password too many times")
     public static final Property<Boolean> TEMPBAN_ON_MAX_LOGINS =
@@ -95,7 +95,7 @@ public final class SecuritySettings implements SettingsHolder {
 
     @Comment("How many times a user can attempt to login before their IP being tempbanned")
     public static final Property<Integer> MAX_LOGIN_TEMPBAN =
-        newProperty("Security.tempban.maxLoginTries", 10);
+        newProperty("Security.tempban.maxLoginTries", 8);
 
     @Comment({"The length of time a IP address will be tempbanned in minutes",
         "Default: 480 minutes, or 8 hours"})
@@ -118,17 +118,17 @@ public final class SecuritySettings implements SettingsHolder {
 
     @Comment("How many hours is a recovery code valid for?")
     public static final Property<Integer> RECOVERY_CODE_HOURS_VALID =
-        newProperty("Security.recoveryCode.validForHours", 4);
+        newProperty("Security.recoveryCode.validForHours", 6);
 
     @Comment("Max number of tries to enter recovery code")
     public static final Property<Integer> RECOVERY_CODE_MAX_TRIES =
-        newProperty("Security.recoveryCode.maxTries", 3);
+        newProperty("Security.recoveryCode.maxTries", 4);
 
     @Comment({"How long a player has after password recovery to change their password",
         "without logging in. This is in minutes.",
         "Default: 2 minutes"})
     public static final Property<Integer> PASSWORD_CHANGE_TIMEOUT =
-        newProperty("Security.recoveryCode.passwordChangeTimeout", 2);
+        newProperty("Security.recoveryCode.passwordChangeTimeout", 5);
 
     @Comment({
         "Seconds a user has to wait for before a password recovery mail may be sent again",

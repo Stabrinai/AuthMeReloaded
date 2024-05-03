@@ -8,11 +8,16 @@ import fr.xephi.authme.process.SyncProcessManager;
 import fr.xephi.authme.security.PasswordSecurity;
 import fr.xephi.authme.security.crypts.HashedPassword;
 import fr.xephi.authme.service.CommonService;
+import fr.xephi.authme.settings.Settings;
 import fr.xephi.authme.settings.properties.EmailSettings;
+import fr.xephi.authme.settings.properties.PluginSettings;
+import fr.xephi.authme.util.PlayerUtils;
 import fr.xephi.authme.util.RandomStringUtils;
 import org.bukkit.entity.Player;
 
 import javax.inject.Inject;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import static fr.xephi.authme.permission.PlayerStatePermission.ALLOW_MULTIPLE_ACCOUNTS;
 import static fr.xephi.authme.process.register.executors.PlayerAuthBuilderHelper.createPlayerAuth;
@@ -32,6 +37,9 @@ class EmailRegisterExecutor implements RegistrationExecutor<EmailRegisterParams>
 
     @Inject
     private EmailService emailService;
+
+    @Inject
+    private Settings settings;
 
     @Inject
     private SyncProcessManager syncProcessManager;
@@ -64,8 +72,10 @@ class EmailRegisterExecutor implements RegistrationExecutor<EmailRegisterParams>
     @Override
     public void executePostPersistAction(EmailRegisterParams params) {
         Player player = params.getPlayer();
+        SimpleDateFormat dateFormat = new SimpleDateFormat(settings.getProperty(PluginSettings.DATE_FORMAT));
+        Date date = new Date(System.currentTimeMillis());
         boolean couldSendMail = emailService.sendPasswordMail(
-            player.getName(), params.getEmail(), params.getPassword());
+            player.getName(), params.getEmail(), params.getPassword(), PlayerUtils.getPlayerIp(player), dateFormat.format(date), true);
         if (couldSendMail) {
             syncProcessManager.processSyncEmailRegister(player);
         } else {

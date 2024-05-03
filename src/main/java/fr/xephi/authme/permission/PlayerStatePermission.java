@@ -12,6 +12,11 @@ public enum PlayerStatePermission implements PermissionNode {
     BYPASS_ANTIBOT("authme.bypassantibot", DefaultPermission.OP_ONLY),
 
     /**
+     * Permission node to turn off AutoLogin.
+     */
+    NEVER_SESSION("authme.neversession", DefaultPermission.OP_ONLY),
+
+    /**
      * Permission node to bypass BungeeCord server teleportation.
      */
     BYPASS_BUNGEE_SEND("authme.bypassbungeesend", DefaultPermission.NOT_ALLOWED),

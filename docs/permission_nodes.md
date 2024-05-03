@@ -35,6 +35,7 @@ The following are the permission nodes that are currently supported by the lates
 - **authme.allowchatbeforelogin** – Permission to send chat messages before being logged in.
 - **authme.allowmultipleaccounts** – Permission to be able to register multiple accounts.
 - **authme.bypassantibot** – Permission node to bypass AntiBot protection.
+- **authme.neversession** – Permission node to turn off AutoLogin.
 - **authme.bypassbungeesend** – Permission node to bypass BungeeCord server teleportation.
 - **authme.bypasscountrycheck** – Permission to bypass the GeoIp country code check.
 - **authme.bypassforcesurvival** – Permission for users to bypass force-survival mode.

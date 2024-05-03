@@ -16,6 +16,7 @@ import fr.xephi.authme.mail.EmailService;
 import fr.xephi.authme.message.MessageKey;
 import fr.xephi.authme.output.ConsoleLoggerFactory;
 import fr.xephi.authme.permission.AdminPermission;
+import fr.xephi.authme.permission.PermissionsManager;
 import fr.xephi.authme.permission.PlayerPermission;
 import fr.xephi.authme.permission.PlayerStatePermission;
 import fr.xephi.authme.process.AsynchronousProcess;
@@ -62,6 +63,9 @@ public class AsynchronousLogin implements AsynchronousProcess {
     private SyncProcessManager syncProcessManager;
 
     @Inject
+    private PermissionsManager permissionsManager;
+
+    @Inject
     private BukkitService bukkitService;
 
     @Inject
@@ -102,7 +106,7 @@ public class AsynchronousLogin implements AsynchronousProcess {
                 limboService.getLimboPlayer(player.getName()).setState(LimboPlayerState.TOTP_REQUIRED);
                 // TODO #1141: Check if we should check limbo state before processing password
             } else {
-                performLogin(player, auth);
+                performLogin(player, auth, false);
             }
         }
     }
@@ -115,7 +119,7 @@ public class AsynchronousLogin implements AsynchronousProcess {
     public void forceLogin(Player player) {
         PlayerAuth auth = getPlayerAuth(player);
         if (auth != null) {
-            performLogin(player, auth);
+            performLogin(player, auth, false);
         }
     }
 
@@ -123,12 +127,13 @@ public class AsynchronousLogin implements AsynchronousProcess {
      * Logs a player in without requiring a password.
      *
      * @param player the player to log in
+     * @param admin if false no messages send to player
      * @param quiet if true no messages will be sent
      */
-    public void forceLogin(Player player, boolean quiet) {
+    public void forceLogin(Player player, boolean admin, boolean quiet) {
         PlayerAuth auth = getPlayerAuth(player, quiet);
         if (auth != null) {
-            performLogin(player, auth);
+            performLogin(player, auth, !admin);
         }
     }
 
@@ -265,7 +270,7 @@ public class AsynchronousLogin implements AsynchronousProcess {
      * @param player the player to log in
      * @param auth the associated PlayerAuth object
      */
-    public void performLogin(Player player, PlayerAuth auth) {
+    public void performLogin(Player player, PlayerAuth auth, boolean quiet) {
         if (player.isOnline()) {
             boolean isFirstLogin = (auth.getLastLogin() == null);
 
@@ -284,7 +289,8 @@ public class AsynchronousLogin implements AsynchronousProcess {
             tempbanManager.resetCount(ip, name);
             player.setNoDamageTicks(0);
 
-            service.send(player, MessageKey.LOGIN_SUCCESS);
+            if (!quiet)
+                service.send(player, MessageKey.LOGIN_SUCCESS);
 
             // Other auths
             List<String> auths = dataSource.getAllAuthsByIp(auth.getLastIp());
@@ -300,7 +306,8 @@ public class AsynchronousLogin implements AsynchronousProcess {
             // makes player loggedin
             playerCache.updatePlayer(auth);
             dataSource.setLogged(name);
-            sessionService.grantSession(name);
+            if (!permissionsManager.hasPermission(player, PlayerStatePermission.NEVER_SESSION))
+                sessionService.grantSession(name);
 
             if (bungeeSender.isEnabled()) {
                 // As described at https://www.spigotmc.org/wiki/bukkit-bungee-plugin-messaging-channel/

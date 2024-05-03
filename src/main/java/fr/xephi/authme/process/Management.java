@@ -59,7 +59,11 @@ public class Management {
     }
 
     public void forceLogin(Player player, boolean quiet) {
-        runTask(task -> asynchronousLogin.forceLogin(player, quiet));
+        runTask(task -> asynchronousLogin.forceLogin(player, true, quiet));
+    }
+
+    public void forceLogin(Player player, boolean admin, boolean quiet) {
+        runTask(task -> asynchronousLogin.forceLogin(player, admin, quiet));
     }
 
     public void performLogout(Player player) {
@@ -74,8 +78,8 @@ public class Management {
         runTask(task -> asynchronousUnregister.unregister(player, password));
     }
 
-    public void performUnregisterByAdmin(CommandSender initiator, String name, Player player) {
-        runTask(task -> asynchronousUnregister.adminUnregister(initiator, name, player));
+    public void performUnregisterByAdmin(CommandSender initiator, String name, Player player, boolean quiet) {
+        runTask(task -> asynchronousUnregister.adminUnregister(initiator, name, player, quiet));
     }
 
     public void performJoin(Player player) {

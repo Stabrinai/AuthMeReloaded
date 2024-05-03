@@ -8,6 +8,7 @@ import fr.xephi.authme.mail.EmailService;
 import fr.xephi.authme.permission.PermissionsManager;
 import fr.xephi.authme.permission.PlayerPermission;
 import fr.xephi.authme.settings.Settings;
+import fr.xephi.authme.settings.properties.PluginSettings;
 import fr.xephi.authme.settings.properties.SecuritySettings;
 import fr.xephi.authme.util.RandomStringUtils;
 import fr.xephi.authme.util.Utils;
@@ -15,6 +16,8 @@ import fr.xephi.authme.util.expiring.ExpiringMap;
 import org.bukkit.entity.Player;
 
 import javax.inject.Inject;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -30,6 +33,7 @@ public class VerificationCodeManager implements SettingsDependent, HasCleanup {
     private final Set<String> verifiedPlayers;
 
     private boolean canSendMail;
+    private final String dateFormat;
 
     @Inject
     VerificationCodeManager(Settings settings, DataSource dataSource, EmailService emailService,
@@ -38,6 +42,7 @@ public class VerificationCodeManager implements SettingsDependent, HasCleanup {
         this.dataSource = dataSource;
         this.permissionsManager = permissionsManager;
         verifiedPlayers = new HashSet<>();
+        this.dateFormat = settings.getProperty(PluginSettings.DATE_FORMAT);
         long countTimeout = settings.getProperty(SecuritySettings.VERIFICATION_CODE_EXPIRATION_MINUTES);
         verificationCodes = new ExpiringMap<>(countTimeout, TimeUnit.MINUTES);
         reload(settings);
@@ -132,12 +137,14 @@ public class VerificationCodeManager implements SettingsDependent, HasCleanup {
      */
     private void generateCode(String name) {
         DataSourceValue<String> emailResult = dataSource.getEmail(name);
+        SimpleDateFormat dateFormat = new SimpleDateFormat(this.dateFormat);
+        Date date = new Date(System.currentTimeMillis());
         if (emailResult.rowExists()) {
             final String email = emailResult.getValue();
             if (!Utils.isEmailEmpty(email)) {
                 String code = RandomStringUtils.generateNum(6); // 6 digits code
                 verificationCodes.put(name.toLowerCase(Locale.ROOT), code);
-                emailService.sendVerificationMail(name, email, code);
+                emailService.sendVerificationMail(name, email, code, dateFormat.format(date));
             }
         }
     }

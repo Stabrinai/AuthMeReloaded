@@ -8,9 +8,9 @@ import fr.xephi.authme.data.limbo.LimboPlayer;
 import fr.xephi.authme.data.limbo.LimboPlayerState;
 import fr.xephi.authme.data.limbo.LimboService;
 import fr.xephi.authme.datasource.DataSource;
-import fr.xephi.authme.output.ConsoleLoggerFactory;
 import fr.xephi.authme.message.MessageKey;
 import fr.xephi.authme.message.Messages;
+import fr.xephi.authme.output.ConsoleLoggerFactory;
 import fr.xephi.authme.process.login.AsynchronousLogin;
 import fr.xephi.authme.security.totp.TotpAuthenticator;
 import org.bukkit.entity.Player;
@@ -70,7 +70,7 @@ public class TotpCodeCommand extends PlayerCommand {
         boolean isCodeValid = totpAuthenticator.checkCode(auth, inputCode);
         if (isCodeValid) {
             logger.debug("Successfully checked TOTP code for `{0}`", player.getName());
-            asynchronousLogin.performLogin(player, auth);
+            asynchronousLogin.performLogin(player, auth, false);
         } else {
             logger.debug("Input TOTP code was invalid for player `{0}`", player.getName());
             messages.send(player, MessageKey.TWO_FACTOR_INVALID_CODE);

@@ -17,9 +17,11 @@ import fr.xephi.authme.service.SessionService;
 import fr.xephi.authme.service.ValidationService;
 import fr.xephi.authme.service.bungeecord.BungeeSender;
 import fr.xephi.authme.service.bungeecord.MessageType;
+import fr.xephi.authme.settings.Settings;
 import fr.xephi.authme.settings.WelcomeMessageConfiguration;
 import fr.xephi.authme.settings.commandconfig.CommandManager;
 import fr.xephi.authme.settings.properties.HooksSettings;
+import fr.xephi.authme.settings.properties.PluginSettings;
 import fr.xephi.authme.settings.properties.RegistrationSettings;
 import fr.xephi.authme.settings.properties.RestrictionSettings;
 import fr.xephi.authme.util.InternetProtocolUtils;
@@ -60,6 +62,9 @@ public class AsynchronousJoin implements AsynchronousProcess {
 
     @Inject
     private BukkitService bukkitService;
+
+    @Inject
+    private Settings settings;
 
     @Inject
     private AsynchronousLogin asynchronousLogin;
@@ -136,7 +141,7 @@ public class AsynchronousJoin implements AsynchronousProcess {
                 // Run commands
                 bukkitService.scheduleSyncTaskFromOptionallyAsyncTask(
                     task -> commandManager.runCommandsOnSessionLogin(player));
-                bukkitService.runTaskOptionallyAsync(task -> asynchronousLogin.forceLogin(player));
+                bukkitService.runTaskOptionallyAsync(task -> asynchronousLogin.forceLogin(player, !settings.getProperty(PluginSettings.REMOVE_SESSIONS_LOGIN_MESSAGE), true));
                 return;
             } else if (proxySessionManager.shouldResumeSession(name)) {
                 service.send(player, MessageKey.SESSION_RECONNECTION);

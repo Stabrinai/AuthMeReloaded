@@ -44,6 +44,6 @@ public class UnregisterAdminCommand implements ExecutableCommand {
 
         // Get the player from the server and perform unregister
         Player target = bukkitService.getPlayerExact(playerName);
-        management.performUnregisterByAdmin(sender, playerName, target);
+        management.performUnregisterByAdmin(sender, playerName, target, false);
     }
 }

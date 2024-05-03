@@ -49,7 +49,7 @@ public class EmailService {
      * @param newPass the new password
      * @return true if email could be sent, false otherwise
      */
-    public boolean sendPasswordMail(String name, String mailAddress, String newPass) {
+    public boolean sendPasswordMail(String name, String mailAddress, String newPass, String ip, String time, boolean isNew) {
         if (!hasAllInformation()) {
             logger.warning("Cannot perform email registration: not all email settings are complete");
             return false;
@@ -63,7 +63,8 @@ public class EmailService {
             return false;
         }
 
-        String mailText = replaceTagsForPasswordMail(settings.getPasswordEmailMessage(), name, newPass);
+        String mailText = isNew && ip != null ? replaceTagsForPasswordMail(settings.getNewPasswordEmailMessage(),
+            name, newPass, ip, time) : replaceTagsForPasswordMail(settings.getPasswordEmailMessage(), name, newPass, time);
         // Generate an image?
         File file = null;
         if (settings.getProperty(EmailSettings.PASSWORD_AS_IMAGE)) {
@@ -89,7 +90,7 @@ public class EmailService {
      * @param code the verification code
      * @return true if email could be sent, false otherwise
      */
-    public boolean sendVerificationMail(String name, String mailAddress, String code) {
+    public boolean sendVerificationMail(String name, String mailAddress, String code, String time) {
         if (!hasAllInformation()) {
             logger.warning("Cannot send verification email: not all email settings are complete");
             return false;
@@ -104,7 +105,7 @@ public class EmailService {
         }
 
         String mailText = replaceTagsForVerificationEmail(settings.getVerificationEmailMessage(), name, code,
-            settings.getProperty(SecuritySettings.VERIFICATION_CODE_EXPIRATION_MINUTES));
+            settings.getProperty(SecuritySettings.VERIFICATION_CODE_EXPIRATION_MINUTES), time);
         return sendMailSsl.sendEmail(mailText, email);
     }
 
@@ -116,7 +117,7 @@ public class EmailService {
      * @param code the recovery code
      * @return true if email could be sent, false otherwise
      */
-    public boolean sendRecoveryCode(String name, String email, String code) {
+    public boolean sendRecoveryCode(String name, String email, String code, String time) {
         HtmlEmail htmlEmail;
         try {
             htmlEmail = sendMailSsl.initializeMail(email);
@@ -126,8 +127,27 @@ public class EmailService {
         }
 
         String message = replaceTagsForRecoveryCodeMail(settings.getRecoveryCodeEmailMessage(),
-            name, code, settings.getProperty(SecuritySettings.RECOVERY_CODE_HOURS_VALID));
+            name, code, settings.getProperty(SecuritySettings.RECOVERY_CODE_HOURS_VALID), time);
         return sendMailSsl.sendEmail(message, htmlEmail);
+    }
+
+    /**
+     * Send an email with server shutdown
+     *
+     * @param email the player's email address
+     * @param time  server shutdown time
+     */
+    public void sendShutDown(String email, String time) {
+        HtmlEmail htmlEmail;
+        try {
+            htmlEmail = sendMailSsl.initializeMail(email);
+        } catch (EmailException e) {
+            logger.logException("Failed to create email for shutdown:", e);
+            return;
+        }
+
+        String message = replaceTagsForShutDownMail(settings.getShutdownEmailMessage(), time);
+        sendMailSsl.sendEmail(message, htmlEmail);
     }
 
     private File generatePasswordImage(String name, String newPass) throws IOException {
@@ -141,29 +161,48 @@ public class EmailService {
         throws EmailException {
         DataSource source = new FileDataSource(image);
         String tag = email.embed(source, image.getName());
-        return content.replace("<image />", "<img src=\"cid:" + tag + "\">");
+        return content.replace("#image", "<img src=\"cid:" + tag + "\">");
     }
 
-    private String replaceTagsForPasswordMail(String mailText, String name, String newPass) {
+    private String replaceTagsForPasswordMail(String mailText, String name, String newPass, String ip, String time) {
         return mailText
-            .replace("<playername />", name)
-            .replace("<servername />", settings.getProperty(PluginSettings.SERVER_NAME))
-            .replace("<generatedpass />", newPass);
+            .replace("#playername", name)
+            .replace("#servername", settings.getProperty(PluginSettings.SERVER_NAME))
+            .replace("#generatedpass", newPass)
+            .replace("#playerip", ip)
+            .replace("#time", time);
     }
 
-    private String replaceTagsForVerificationEmail(String mailText, String name, String code, int minutesValid) {
+    private String replaceTagsForPasswordMail(String mailText, String name, String newPass, String time) {
         return mailText
-            .replace("<playername />", name)
-            .replace("<servername />", settings.getProperty(PluginSettings.SERVER_NAME))
-            .replace("<generatedcode />", code)
-            .replace("<minutesvalid />", String.valueOf(minutesValid));
+            .replace("#playername", name)
+            .replace("#servername", settings.getProperty(PluginSettings.SERVER_NAME))
+            .replace("#generatedpass", newPass)
+            .replace("#time", time);
     }
 
-    private String replaceTagsForRecoveryCodeMail(String mailText, String name, String code, int hoursValid) {
+    private String replaceTagsForVerificationEmail(String mailText, String name, String code, int minutesValid, String time) {
         return mailText
-            .replace("<playername />", name)
-            .replace("<servername />", settings.getProperty(PluginSettings.SERVER_NAME))
-            .replace("<recoverycode />", code)
-            .replace("<hoursvalid />", String.valueOf(hoursValid));
+            .replace("#playername", name)
+            .replace("#servername", settings.getProperty(PluginSettings.SERVER_NAME))
+            .replace("#generatedcode", code)
+            .replace("#minutesvalid", String.valueOf(minutesValid))
+            .replace("#time", time);
     }
+
+    private String replaceTagsForRecoveryCodeMail(String mailText, String name, String code, int hoursValid, String time) {
+        return mailText
+            .replace("#playername", name)
+            .replace("#servername", settings.getProperty(PluginSettings.SERVER_NAME))
+            .replace("#recoverycode", code)
+            .replace("#hoursvalid", String.valueOf(hoursValid))
+            .replace("#time", time);
+    }
+
+    private String replaceTagsForShutDownMail(String mailText, String time) {
+        return mailText
+            .replace("#servername", settings.getProperty(PluginSettings.SERVER_NAME))
+            .replace("#time", time);
+    }
+
 }

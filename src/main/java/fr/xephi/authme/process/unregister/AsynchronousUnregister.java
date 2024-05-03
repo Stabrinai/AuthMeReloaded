@@ -7,18 +7,18 @@ import fr.xephi.authme.data.limbo.LimboService;
 import fr.xephi.authme.datasource.DataSource;
 import fr.xephi.authme.events.UnregisterByAdminEvent;
 import fr.xephi.authme.events.UnregisterByPlayerEvent;
-import fr.xephi.authme.output.ConsoleLoggerFactory;
 import fr.xephi.authme.message.MessageKey;
+import fr.xephi.authme.output.ConsoleLoggerFactory;
 import fr.xephi.authme.process.AsynchronousProcess;
 import fr.xephi.authme.security.PasswordSecurity;
 import fr.xephi.authme.service.BukkitService;
 import fr.xephi.authme.service.CommonService;
 import fr.xephi.authme.service.TeleportationService;
+import fr.xephi.authme.service.bungeecord.BungeeSender;
 import fr.xephi.authme.service.bungeecord.MessageType;
 import fr.xephi.authme.settings.commandconfig.CommandManager;
 import fr.xephi.authme.settings.properties.RegistrationSettings;
 import fr.xephi.authme.settings.properties.RestrictionSettings;
-import fr.xephi.authme.service.bungeecord.BungeeSender;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -94,15 +94,17 @@ public class AsynchronousUnregister implements AsynchronousProcess {
      */
     // We need to have the name and the player separate because Player might be null in this case:
     // we might have some player in the database that has never been online on the server
-    public void adminUnregister(CommandSender initiator, String name, Player player) {
+    public void adminUnregister(CommandSender initiator, String name, Player player, boolean quiet) {
         if (dataSource.removeAuth(name)) {
             performPostUnregisterActions(name, player);
             bukkitService.createAndCallEvent(isAsync -> new UnregisterByAdminEvent(player, name, isAsync, initiator));
 
             if (initiator == null) {
-                logger.info(name + " was unregistered");
+                if (!quiet)
+                    logger.info(name + " was unregistered");
             } else {
-                logger.info(name + " was unregistered by " + initiator.getName());
+                if (!quiet)
+                    logger.info(name + " was unregistered by " + initiator.getName());
                 service.send(initiator, MessageKey.UNREGISTERED_SUCCESS);
             }
         } else if (initiator != null) {

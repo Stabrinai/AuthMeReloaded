@@ -266,6 +266,16 @@ public class AuthMeApi {
     }
 
     /**
+     * Force a player to login, i.e. the player is logged in without needing his password.
+     *
+     * @param player The player to log in
+     * @param quiet  if true do not send LOGIN_SUCCESS to player
+     */
+    public void forceLogin(Player player, boolean quiet) {
+        management.forceLogin(player, false, quiet);
+    }
+
+    /**
      * Force a player to logout.
      *
      * @param player The player to log out
@@ -302,7 +312,7 @@ public class AuthMeApi {
      * @param player The player to unregister
      */
     public void forceUnregister(Player player) {
-        management.performUnregisterByAdmin(null, player.getName(), player);
+        management.performUnregisterByAdmin(null, player.getName(), player, false);
     }
 
     /**
@@ -311,7 +321,7 @@ public class AuthMeApi {
      * @param name the name of the player (case-insensitive)
      */
     public void forceUnregister(String name) {
-        management.performUnregisterByAdmin(null, name, Bukkit.getPlayer(name));
+        management.performUnregisterByAdmin(null, name, Bukkit.getPlayer(name), false);
     }
 
     /**

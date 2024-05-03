@@ -7,8 +7,8 @@ import com.google.common.collect.Multimap;
 import fr.xephi.authme.ConsoleLogger;
 import fr.xephi.authme.datasource.DataSource;
 import fr.xephi.authme.initialization.Reloadable;
-import fr.xephi.authme.output.ConsoleLoggerFactory;
 import fr.xephi.authme.message.MessageKey;
+import fr.xephi.authme.output.ConsoleLoggerFactory;
 import fr.xephi.authme.permission.PermissionsManager;
 import fr.xephi.authme.permission.PlayerStatePermission;
 import fr.xephi.authme.settings.Settings;
@@ -17,7 +17,6 @@ import fr.xephi.authme.settings.properties.ProtectionSettings;
 import fr.xephi.authme.settings.properties.RestrictionSettings;
 import fr.xephi.authme.settings.properties.SecuritySettings;
 import fr.xephi.authme.util.PlayerUtils;
-import fr.xephi.authme.util.StringUtils;
 import fr.xephi.authme.util.Utils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -49,6 +48,7 @@ public class ValidationService implements Reloadable {
     @Inject
     private GeoIpService geoIpService;
 
+    private Pattern emailRegex;
     private Pattern passwordRegex;
     private Multimap<String, String> restrictedNames;
 
@@ -58,6 +58,7 @@ public class ValidationService implements Reloadable {
     @PostConstruct
     @Override
     public void reload() {
+        emailRegex = Utils.safePatternCompile(settings.getProperty(RestrictionSettings.ALLOWED_EMAIL_REGEX));
         passwordRegex = Utils.safePatternCompile(settings.getProperty(RestrictionSettings.ALLOWED_PASSWORD_REGEX));
         restrictedNames = settings.getProperty(RestrictionSettings.ENABLE_RESTRICTED_USERS)
             ? loadNameRestrictions(settings.getProperty(RestrictionSettings.RESTRICTED_USERS))
@@ -93,12 +94,7 @@ public class ValidationService implements Reloadable {
      * @return true if the email is valid, false otherwise
      */
     public boolean validateEmail(String email) {
-        if (Utils.isEmailEmpty(email) || !StringUtils.isInsideString('@', email)) {
-            return false;
-        }
-        final String emailDomain = email.split("@")[1];
-        return validateWhitelistAndBlacklist(
-            emailDomain, EmailSettings.DOMAIN_WHITELIST, EmailSettings.DOMAIN_BLACKLIST);
+        return emailRegex.matcher(email).matches();
     }
 
     /**

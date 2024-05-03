@@ -7,6 +7,7 @@ import fr.euphyllia.energie.Energie;
 import fr.euphyllia.energie.model.SchedulerType;
 import fr.xephi.authme.api.v3.AuthMeApi;
 import fr.xephi.authme.command.CommandHandler;
+import fr.xephi.authme.data.auth.PlayerAuth;
 import fr.xephi.authme.datasource.DataSource;
 import fr.xephi.authme.initialization.DataFolder;
 import fr.xephi.authme.initialization.DataSourceProvider;
@@ -21,7 +22,9 @@ import fr.xephi.authme.listener.PlayerListener111;
 import fr.xephi.authme.listener.PlayerListener19;
 import fr.xephi.authme.listener.PlayerListener19Spigot;
 import fr.xephi.authme.listener.ServerListener;
+import fr.xephi.authme.mail.EmailService;
 import fr.xephi.authme.output.ConsoleLoggerFactory;
+import fr.xephi.authme.process.Management;
 import fr.xephi.authme.security.crypts.Sha256;
 import fr.xephi.authme.service.BackupService;
 import fr.xephi.authme.service.BukkitService;
@@ -30,10 +33,14 @@ import fr.xephi.authme.service.bungeecord.BungeeReceiver;
 import fr.xephi.authme.service.yaml.YamlParseException;
 import fr.xephi.authme.settings.Settings;
 import fr.xephi.authme.settings.SettingsWarner;
+import fr.xephi.authme.settings.properties.EmailSettings;
+import fr.xephi.authme.settings.properties.PluginSettings;
+import fr.xephi.authme.settings.properties.RegistrationSettings;
 import fr.xephi.authme.settings.properties.SecuritySettings;
 import fr.xephi.authme.task.CleanupTask;
 import fr.xephi.authme.task.purge.PurgeService;
 import fr.xephi.authme.util.ExceptionUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -43,6 +50,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.java.JavaPluginLoader;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.function.Consumer;
 
 import static fr.xephi.authme.service.BukkitService.TICKS_PER_MINUTE;
@@ -66,6 +75,8 @@ public class AuthMe extends JavaPlugin {
     private CommandHandler commandHandler;
     private Settings settings;
     private DataSource database;
+    private EmailService emailService;
+    private Management management;
     private BukkitService bukkitService;
     private Injector injector;
     private BackupService backupService;
@@ -187,6 +198,17 @@ public class AuthMe extends JavaPlugin {
         // Purge on start if enabled
         PurgeService purgeService = injector.getSingleton(PurgeService.class);
         purgeService.runAutoPurge();
+
+        // Unregister players who have never logged in before
+        if (settings.getProperty(RegistrationSettings.UNREGISTER_ALL_NEVER_LOGGED_PLAYERS)) {
+            bukkitService.runTaskAsynchronously(task -> {
+                for (PlayerAuth auth : database.getAllAuths()) {
+                    if (auth.getLastLogin() == null) {
+                        management.performUnregisterByAdmin(null, auth.getRealName(), Bukkit.getPlayer(auth.getRealName()), true);
+                    }
+                }
+            });
+        }
     }
 
     /**
@@ -254,6 +276,8 @@ public class AuthMe extends JavaPlugin {
      */
     void instantiateServices(Injector injector) {
         database = injector.getSingleton(DataSource.class);
+        emailService = injector.getSingleton(EmailService.class);
+        management = injector.getSingleton(Management.class);
         bukkitService = injector.getSingleton(BukkitService.class);
         commandHandler = injector.getSingleton(CommandHandler.class);
         backupService = injector.getSingleton(BackupService.class);
@@ -317,6 +341,12 @@ public class AuthMe extends JavaPlugin {
             : injector.createIfHasDependencies(OnShutdownPlayerSaver.class);
         if (onShutdownPlayerSaver != null) {
             onShutdownPlayerSaver.saveAllPlayers();
+        }
+
+        if (settings.getProperty(EmailSettings.SHUTDOWN_MAIL) && settings.getProperty(EmailSettings.SHUTDOWN_MAIL_ADDRESS) != null) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat(settings.getProperty(PluginSettings.DATE_FORMAT));
+            Date date = new Date(System.currentTimeMillis());
+            emailService.sendShutDown(settings.getProperty(EmailSettings.SHUTDOWN_MAIL_ADDRESS), dateFormat.format(date));
         }
 
         // Do backup on stop if enabled

@@ -18,14 +18,20 @@ public final class PluginSettings implements SettingsHolder {
         "expired, he will not need to authenticate."
     })
     public static final Property<Boolean> SESSIONS_ENABLED =
-        newProperty("settings.sessions.enabled", false);
+        newProperty("settings.sessions.enabled", true);
+
+    @Comment({
+        "Remove the session login message"
+    })
+    public static final Property<Boolean> REMOVE_SESSIONS_LOGIN_MESSAGE =
+        newProperty("settings.sessions.removeSessionsLoginMessage", false);
 
     @Comment({
         "After how many minutes should a session expire?",
         "A player's session ends after the timeout or if his IP has changed"
     })
     public static final Property<Integer> SESSIONS_TIMEOUT =
-        newProperty("settings.sessions.timeout", 10);
+        newProperty("settings.sessions.timeout", 43200);
 
     @Comment({
         "Message language, available languages:",
@@ -84,6 +90,12 @@ public final class PluginSettings implements SettingsHolder {
 
     @Comment("The name of the server, used in some placeholders.")
     public static final Property<String> SERVER_NAME = newProperty("settings.serverName", "Your Minecraft Server");
+
+    @Comment({
+        "The pattern of date format, used in email date format.",
+        "!!! This cannot be empty !!!"
+    })
+    public static final Property<String> DATE_FORMAT = newProperty("settings.dataFormat", "yyyy'年'MM'月'dd'日' HH:mm:ss");
 
     private PluginSettings() {
     }
