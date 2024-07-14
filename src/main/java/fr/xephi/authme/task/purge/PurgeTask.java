@@ -12,7 +12,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -63,7 +62,7 @@ class PurgeTask implements SchedulerCallBack {
     }
 
     @Override
-    public void run(@Nullable SchedulerTaskInter schedulerTaskInter) {
+    public void run(SchedulerTaskInter schedulerTaskInter) {
         if (toPurge.isEmpty()) {
             //everything was removed
             finish();

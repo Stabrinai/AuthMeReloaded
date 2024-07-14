@@ -19,6 +19,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import javax.inject.Inject;
 import java.util.Collection;
@@ -372,6 +374,16 @@ public class BukkitService implements SettingsDependent {
         } catch (NoSuchMethodError e) {
             return Optional.empty();
         }
+    }
+
+    /**
+     * Creates a PotionEffect with blindness for the given duration in ticks.
+     *
+     * @param timeoutInTicks duration of the effect in ticks
+     * @return blindness potion effect
+     */
+    public PotionEffect createBlindnessEffect(int timeoutInTicks) {
+        return new PotionEffect(PotionEffectType.BLINDNESS, timeoutInTicks, 2);
     }
 
     /**

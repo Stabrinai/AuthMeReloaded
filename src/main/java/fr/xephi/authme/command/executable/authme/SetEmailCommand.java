@@ -12,7 +12,6 @@ import fr.xephi.authme.service.CommonService;
 import fr.xephi.authme.service.ValidationService;
 import org.bukkit.command.CommandSender;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.List;
 

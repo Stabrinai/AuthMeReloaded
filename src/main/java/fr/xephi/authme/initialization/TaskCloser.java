@@ -6,8 +6,6 @@ import fr.euphyllia.energie.model.SchedulerTaskInter;
 import fr.xephi.authme.AuthMe;
 import fr.xephi.authme.datasource.DataSource;
 
-import javax.annotation.Nullable;
-
 /**
  * Waits for asynchronous tasks to complete before closing the data source
  * so the plugin can shut down properly.
@@ -29,7 +27,7 @@ public class TaskCloser implements SchedulerCallBack {
     }
 
     @Override
-    public void run(@Nullable SchedulerTaskInter schedulerTaskInter) {
+    public void run(SchedulerTaskInter schedulerTaskInter) {
         scheduler.cancelAllTask();
         if (dataSource != null) {
             dataSource.closeConnection();

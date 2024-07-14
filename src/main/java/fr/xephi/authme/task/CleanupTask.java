@@ -5,7 +5,6 @@ import fr.euphyllia.energie.model.SchedulerCallBack;
 import fr.euphyllia.energie.model.SchedulerTaskInter;
 import fr.xephi.authme.initialization.HasCleanup;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 /**
@@ -20,7 +19,7 @@ public class CleanupTask implements SchedulerCallBack {
     }
 
     @Override
-    public void run(@Nullable SchedulerTaskInter schedulerTaskInter) {
+    public void run(SchedulerTaskInter schedulerTaskInter) {
         hasCleanupStore.retrieveAllOfType()
             .forEach(HasCleanup::performCleanup);
     }

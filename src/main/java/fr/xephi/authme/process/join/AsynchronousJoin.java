@@ -29,8 +29,6 @@ import fr.xephi.authme.util.PlayerUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
 import javax.inject.Inject;
 import java.util.Locale;
@@ -199,7 +197,7 @@ public class AsynchronousJoin implements AsynchronousProcess {
             if (service.getProperty(RegistrationSettings.APPLY_BLIND_EFFECT)) {
                 // Allow infinite blindness effect
                 int blindTimeOut = (registrationTimeout <= 0) ? 99999 : registrationTimeout;
-                bukkitService.runTask(player, task1 -> player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, blindTimeOut, 2)));
+                bukkitService.runTask(player, task1 -> player.addPotionEffect(bukkitService.createBlindnessEffect(blindTimeOut)));
             }
             commandManager.runCommandsOnJoin(player);
         });
