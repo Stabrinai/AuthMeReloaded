@@ -320,7 +320,6 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.6.0</version>
                 <executions>
-                    <!-- Disable, we aren't using shading atm
                     <execution>
                         <id>shaded-jar</id>
                         <phase>package</phase>
@@ -328,7 +327,6 @@
                             <goal>shade</goal>
                         </goals>
                     </execution>
-                    -->
                 </executions>
                 <configuration>
                     <!-- Don't create the reduced pom file, as we don't deploy the shaded jar -->
@@ -338,14 +336,12 @@
                     <!-- Use the base jar name, to help server owners download the right jar -->
                     <finalName>${project.finalNameBase}</finalName>
 
-                    <!-- Disable, no relocations atm
                     <relocations>
                         <relocation>
-                            <pattern></pattern>
-                            <shadedPattern>fr.xephi.authme.libs.</shadedPattern>
+                            <pattern>fr.euphyllia.energie</pattern>
+                            <shadedPattern>fr.xephi.authme.libs.fr.euphyllia.energie</shadedPattern>
                         </relocation>
                     </relocations>
-                    -->
 
                     <filters>
                         <!-- Ignore manifest signatures for shading the project into an uber-jar to fix -->
