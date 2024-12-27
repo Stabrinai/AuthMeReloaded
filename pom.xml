@@ -496,8 +496,8 @@
 
         <!-- Multiverse Repo -->
         <repository>
-            <id>onarandombox-repo-releases</id>
-            <url>https://repo.onarandombox.com/content/repositories/multiverse/</url>
+            <id>GlareMasters</id>
+            <url>https://repo.glaremasters.me/repository/public/</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
