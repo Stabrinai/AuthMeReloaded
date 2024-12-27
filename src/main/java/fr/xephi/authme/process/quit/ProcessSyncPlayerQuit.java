@@ -1,6 +1,5 @@
 package fr.xephi.authme.process.quit;
 
-import fr.euphyllia.energie.Energie;
 import fr.xephi.authme.data.limbo.LimboService;
 import fr.xephi.authme.process.SynchronousProcess;
 import fr.xephi.authme.settings.commandconfig.CommandManager;
@@ -28,7 +27,6 @@ public class ProcessSyncPlayerQuit implements SynchronousProcess {
             commandManager.runCommandsOnLogout(player);
         } else {
             limboService.restoreData(player);
-            if(!Energie.isFolia()) player.saveData(); // Fix Folia issue // #1238: Speed is sometimes not restored properly
         }
         player.leaveVehicle();
     }
