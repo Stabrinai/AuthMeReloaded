@@ -120,6 +120,7 @@ class TestEmailSender implements DebugSection {
         htmlEmail.setSubject("AuthMe test email");
         String message = "Hello there!<br />This is a sample email sent to you from a Minecraft server ("
             + server.getName() + ") via /authme debug mail. If you're seeing this, sending emails should be fine.";
-        return sendMailSsl.sendEmail(message, htmlEmail);
+        sendMailSsl.sendEmail(message, htmlEmail);
+        return true;
     }
 }

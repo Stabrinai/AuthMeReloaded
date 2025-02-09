@@ -3,6 +3,7 @@ package fr.xephi.authme.mail;
 import fr.xephi.authme.ConsoleLogger;
 import fr.xephi.authme.output.ConsoleLoggerFactory;
 import fr.xephi.authme.output.LogLevel;
+import fr.xephi.authme.service.BukkitService;
 import fr.xephi.authme.settings.Settings;
 import fr.xephi.authme.settings.properties.EmailSettings;
 import fr.xephi.authme.settings.properties.PluginSettings;
@@ -10,6 +11,7 @@ import fr.xephi.authme.util.StringUtils;
 import org.apache.commons.mail.EmailConstants;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
+import org.bukkit.scheduler.BukkitScheduler;
 
 import javax.activation.CommandMap;
 import javax.activation.MailcapCommandMap;
@@ -17,6 +19,7 @@ import javax.inject.Inject;
 import javax.mail.Session;
 import java.security.Security;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
 
 import static fr.xephi.authme.settings.properties.EmailSettings.MAIL_ACCOUNT;
 import static fr.xephi.authme.settings.properties.EmailSettings.MAIL_PASSWORD;
@@ -31,6 +34,9 @@ public class SendMailSsl {
 
     @Inject
     private Settings settings;
+
+    @Inject
+    private BukkitService bukkitService;
 
     /**
      * Returns whether all necessary settings are set for sending mails.
@@ -82,33 +88,32 @@ public class SendMailSsl {
      *
      * @param content the content to set
      * @param email the email object to send
-     * @return true upon success, false otherwise
      */
-    public boolean sendEmail(String content, HtmlEmail email) {
-        Thread.currentThread().setContextClassLoader(SendMailSsl.class.getClassLoader());
-        // Issue #999: Prevent UnsupportedDataTypeException: no object DCH for MIME type multipart/alternative
-        // cf. http://stackoverflow.com/questions/21856211/unsupporteddatatypeexception-no-object-dch-for-mime-type
-        MailcapCommandMap mc = (MailcapCommandMap) CommandMap.getDefaultCommandMap();
-        mc.addMailcap("text/html;; x-java-content-handler=com.sun.mail.handlers.text_html");
-        mc.addMailcap("text/xml;; x-java-content-handler=com.sun.mail.handlers.text_xml");
-        mc.addMailcap("text/plain;; x-java-content-handler=com.sun.mail.handlers.text_plain");
-        mc.addMailcap("multipart/*;; x-java-content-handler=com.sun.mail.handlers.multipart_mixed");
-        mc.addMailcap("message/rfc822;; x-java-content- handler=com.sun.mail.handlers.message_rfc822");
+    public void sendEmail(String content, HtmlEmail email) {
+        bukkitService.runTaskAsynchronously(task -> {
+            Thread.currentThread().setContextClassLoader(SendMailSsl.class.getClassLoader());
+            // Issue #999: Prevent UnsupportedDataTypeException: no object DCH for MIME type multipart/alternative
+            // cf. http://stackoverflow.com/questions/21856211/unsupporteddatatypeexception-no-object-dch-for-mime-type
+            MailcapCommandMap mc = (MailcapCommandMap) CommandMap.getDefaultCommandMap();
+            mc.addMailcap("text/html;; x-java-content-handler=com.sun.mail.handlers.text_html");
+            mc.addMailcap("text/xml;; x-java-content-handler=com.sun.mail.handlers.text_xml");
+            mc.addMailcap("text/plain;; x-java-content-handler=com.sun.mail.handlers.text_plain");
+            mc.addMailcap("multipart/*;; x-java-content-handler=com.sun.mail.handlers.multipart_mixed");
+            mc.addMailcap("message/rfc822;; x-java-content- handler=com.sun.mail.handlers.message_rfc822");
 
-        try {
-            email.setHtmlMsg(content);
-            email.setTextMsg(content);
-        } catch (EmailException e) {
-            logger.logException("Your email.html config contains an error and cannot be sent:", e);
-            return false;
-        }
-        try {
-            email.send();
-            return true;
-        } catch (EmailException e) {
-            logger.logException("Failed to send a mail to " + email.getToAddresses() + ":", e);
-            return false;
-        }
+            try {
+                email.setHtmlMsg(content);
+                email.setTextMsg(content);
+            } catch (EmailException e) {
+                logger.logException("Your email.html config contains an error and cannot be sent:", e);
+                return;
+            }
+            try {
+                email.send();
+            } catch (EmailException e) {
+                logger.logException("Failed to send a mail to " + email.getToAddresses() + ":", e);
+            }
+        });
     }
 
     /**

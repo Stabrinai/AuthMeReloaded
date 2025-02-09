@@ -77,9 +77,9 @@ public class EmailService {
             }
         }
 
-        boolean couldSendEmail = sendMailSsl.sendEmail(mailText, email);
+        sendMailSsl.sendEmail(mailText, email);
         FileUtils.delete(file);
-        return couldSendEmail;
+        return true;
     }
 
     /**
@@ -106,7 +106,8 @@ public class EmailService {
 
         String mailText = replaceTagsForVerificationEmail(settings.getVerificationEmailMessage(), name, code,
             settings.getProperty(SecuritySettings.VERIFICATION_CODE_EXPIRATION_MINUTES), time);
-        return sendMailSsl.sendEmail(mailText, email);
+        sendMailSsl.sendEmail(mailText, email);
+        return true;
     }
 
     /**
@@ -128,7 +129,8 @@ public class EmailService {
 
         String message = replaceTagsForRecoveryCodeMail(settings.getRecoveryCodeEmailMessage(),
             name, code, settings.getProperty(SecuritySettings.RECOVERY_CODE_HOURS_VALID), time);
-        return sendMailSsl.sendEmail(message, htmlEmail);
+        sendMailSsl.sendEmail(message, htmlEmail);
+        return true;
     }
 
     /**
